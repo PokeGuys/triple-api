@@ -46,12 +46,14 @@ $api->version('v1', [
             $api->delete('/{id}', 'TripController@deleteTrip');
         });
         $api->group(['prefix' => 'itinerary'], function($api) {
-            $api->post('create', 'TripController@createTripItinerary');
+            $api->post('/', 'TripController@createTripItinerary');
             $api->put('/{id}', 'TripController@editTripItinerary');
+            $api->delete('/{id}', 'TripController@deleteTripItinerary');
         });
         $api->group(['prefix' => 'item'], function($api) {
-            $api->post('create', 'TripController@assignItineraryItem');
+            $api->post('/', 'TripController@assignItineraryItem');
             $api->put('/{id}', 'TripController@editItineraryItem');
+            $api->delete('/{id}', 'TripController@deleteItineraryItem');
         });
     });
 });
