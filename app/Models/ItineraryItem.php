@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class ItineraryItem extends Model
 {
     protected $dateFormat = 'U';
-    protected $fillable = ['itinerary_id', 'attraction_id', 'visit_time', 'visit_length'];
+    protected $fillable = ['trip_itinerary_id', 'attraction_id', 'visit_time'];
     protected $dates = ['created_at', 'updated_at'];
 
-    public function itinerary()
+    public function trip_itinerary()
     {
         return $this->belongsTo(TripItinerary::Class);
     }

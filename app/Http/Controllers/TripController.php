@@ -7,6 +7,7 @@ use Log;
 use Validator;
 use Carbon\Carbon;
 use App\Models\Trip;
+use App\Models\TripItinerary;
 use App\Models\User;
 use App\Http\Traits\TripHelper;
 use App\Http\Controllers\Controller;
@@ -140,6 +141,130 @@ class TripController extends Controller
         try {
             if (!$trip = Auth::User()->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             $trip->delete();
+        } catch (\PDOException $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
+    }
+
+    //create Trip Itinerary
+    public function createTripItinerary(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id'       => 'required|integer|min:1|max:10',
+            'visit_date'    => 'required|date'
+        ]);
+        try {
+            $trip = Trip::find($request->trip_id);
+            if (!$trip) {
+                throw new NotFoundHttpException(trans('notfound.trip'));
+            }
+            if(!TripItinerary::where('trip_id', $trip->id)->where('visit_date', $request->visit_date)){
+                DB::beginTransaction();
+                $tripItinerary = TripItinerary::create([
+                    'trip_id' => $trip->id,
+                    'visit_date' => $request->visit_date
+                ]);
+                DB::commit();
+            }
+        } catch (Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->created();
+    }
+
+    //edit Trip Itinerary
+    public function editTripItinerary(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'visit_date'    => 'required|date'
+        ]);
+        try{
+            if (!$tripItinerary = TripItinerary::find($id)) throw new NotFoundHttpException(trans('notfound.tripItinerary'));
+            DB::beginTransaction();
+            $tripItinerary->fill([
+                'visit_date' => $request->visit_date
+            ])->save();
+            DB::commit();
+        } catch (Exception $e)) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
+    }
+
+    //delete Trip Itinerary
+    public function deleteTripItinerary(Request $request, $id)
+    {
+        try {
+            if (!$tripItinerary = TripItinerary::find($id)) throw new NotFoundHttpException(trans('notfound.tripItinerary'));
+            $tripItinerary->delete();
+        } catch (\PDOException $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
+    }
+
+    //add item to Trip Itinerary
+    public function assignItineraryItem(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_itinerary_id' => 'required|integer|min:1|max:10',
+            'attraction_id'     => 'required|integer|min:1|max:10',
+            'visit_time'        => 'required|time'
+        ]);
+        try {
+            $tripItinerary = TripItinerary::find($request->itinerary_id);
+            $attraction = Attraction::find($request->attraction_id);
+            if (!$tripItinerary && !$attraction) {
+                throw new NotFoundHttpException(trans('notfound.trip'));
+            }
+            DB::beginTransaction();
+            $itineraryItem = ItineraryItem::create([
+                'trip_itinerary_id' => $tripItinerary->id,
+                'attraction_id' => $attraction->id,
+                'visit_time' => $request->visit_time
+            ]);
+            DB::commit();
+        } catch (Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->created();
+    }
+
+    //edit Itinerary Item
+    public function editItineraryItem(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'attraction_id'     => 'required|integer|min:1|max:10',
+            'visit_time'    => 'required|time'
+        ]);
+        try{
+            if (!$itineraryItem = ItineraryItem::find($id)) throw new NotFoundHttpException(trans('notfound.itineraryItem'));
+            if (!$attraction = Attraction::find($request->attraction_id)) throw new NotFoundHttpException(trans('notfound.attraction'));
+            DB::beginTransaction();
+            $itineraryItem->fill([
+                'attraction_id' => $attraction->id,
+                'visit_date' => $request->visit_date
+            ])->save();
+            DB::commit();
+        } catch (Exception $e)) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
+    }
+
+    //delete Itinerary Item
+    public function deleteItineraryItem(Request $request, $id)
+    {
+        try {
+            if (!$itineraryItem = ItineraryItem::find($id)) throw new NotFoundHttpException(trans('notfound.itineraryItem'));
+            $itineraryItem->delete();
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
