@@ -6,6 +6,8 @@ use Auth;
 use Log;
 use Validator;
 use Carbon\Carbon;
+use App\Models\Attraction;
+use App\Models\ItineraryItem;
 use App\Models\Trip;
 use App\Models\TripItinerary;
 use App\Models\User;
