@@ -190,7 +190,7 @@ class TripController extends Controller
                 'visit_date' => $request->visit_date
             ])->save();
             DB::commit();
-        } catch (Exception $e)) {
+        } catch (Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
@@ -254,7 +254,7 @@ class TripController extends Controller
                 'visit_date' => $request->visit_date
             ])->save();
             DB::commit();
-        } catch (Exception $e)) {
+        } catch (Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
