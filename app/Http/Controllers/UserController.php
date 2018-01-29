@@ -49,7 +49,8 @@ class UserController extends Controller
             'password' => 'required|min:6|confirmed',
             'first_name' => 'required|max:255',
             'last_name' => 'required|max:255',
-            'gender' => 'required',
+            'gender' => 'required|in:M,F',
+            'income' => 'required|exists:income_groups,id',
             'age' => 'required|exists:age_groups,id',
             'email' => 'required|email|max:255|unique:users'
         ]);
@@ -75,6 +76,7 @@ class UserController extends Controller
                 'last_name' => $request->last_name,
                 'gender' => $request->gender,
                 'age' => $request->age,
+                'income' => $request->income,
                 'password' => Hash::make($request->password),
                 'regip' => $IP
             ]);

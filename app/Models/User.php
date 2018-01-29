@@ -13,7 +13,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $dateFormat = 'U';
     protected $dates = ['created_at', 'updated_at', 'deleted_at', 'last_login_at'];
-    protected $fillable = ['status', 'username', 'password', 'email', 'first_name', 'last_name', 'age', 'gender', 'regip', 'login_count', 'last_login_at'];
+    protected $fillable = ['username', 'password', 'email', 'first_name', 'last_name', 'age', 'gender', 'income', 'regip', 'login_count', 'last_login_at'];
     protected $hidden = ['password', 'regip'];
 
     public function verification()
