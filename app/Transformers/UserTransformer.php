@@ -23,6 +23,7 @@ class UserTransformer extends TransformerAbstract
             'last_name' => $user->last_name,
             'age' => $user->age,
             'gender' => $user->gender,
+            'income' => $user->income,
             'created_at' => strtotime($user->created_at),
             'updated_at' => strtotime($user->updated_at)
         ]);
