@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Log;
 use App\Models\City;
 use App\Models\AgeGroup;
+use App\Models\IncomeGroup;
 use App\Transformers\CityTransformer;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
@@ -22,6 +23,7 @@ class SystemController extends Controller
         try {
             $manager = new Manager();
             $manager->setSerializer(new DataArraySerializer());
+            $income = IncomeGroup::all();
             $age = AgeGroup::all();
             $city = City::all();
             $resource = new Collection($city, new CityTransformer, 'city');
@@ -31,6 +33,7 @@ class SystemController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->array([
+            'income' => $income,
             'age' => $age,
             'city' => $formatted_city['data']
         ]);
