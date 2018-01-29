@@ -31,6 +31,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->first_name . " " . $this->last_name;
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
