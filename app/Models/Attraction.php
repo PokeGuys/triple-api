@@ -10,7 +10,7 @@ class Attraction extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['name', 'phone', 'website', 'email', 'address', 'tags', 'latitude', 'longitude', 'rating', 'comment_count', 'photo_count'];
+    protected $fillable = ['name', 'phone', 'website', 'email', 'address', 'tags', 'photos', 'latitude', 'longitude', 'rating', 'comment_count', 'photo_count'];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
     public function category()
