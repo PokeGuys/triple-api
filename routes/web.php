@@ -35,6 +35,8 @@ $api->version('v1', [
     // Auth Required
     $api->group(['middleware' => 'auth:api'], function($api) {
         $api->group(['prefix' => 'member'], function($api) {
+            $api->get('/perference', 'Auth\UserController@generatePerference');
+            $api->put('/perference', 'Auth\UserController@setPerference');
             $api->get('/info', 'Auth\UserController@getInfo');
         });
         $api->group(['prefix' => 'trip'], function($api) {
