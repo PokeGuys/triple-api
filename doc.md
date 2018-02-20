@@ -1,5 +1,3 @@
-FORMAT: 1A
-
 # Triple
 
 # System
