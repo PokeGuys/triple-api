@@ -53,5 +53,8 @@ $api->version('v1', [
             $api->put('/{id}', 'Auth\TripController@editItineraryItem');
             $api->delete('/{id}', 'Auth\TripController@deleteItineraryItem');
         });
+        $api->group(['prefix' => 'survey'], function($api) {
+            $api->post('/', 'SurveyController@input');
+        });
     });
 });
