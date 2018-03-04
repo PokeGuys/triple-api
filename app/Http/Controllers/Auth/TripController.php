@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
 use Auth;
 use Log;
 use Validator;
 use Carbon\Carbon;
 use App\Models\Attraction;
+use App\Models\City;
 use App\Models\ItineraryItem;
 use App\Models\Trip;
 use App\Models\TripItinerary;
 use App\Models\User;
-use App\Http\Traits\TripHelper;
+use App\Services\TripHelper;
 use App\Http\Controllers\Controller;
 use App\Transformers\TripTransformer;
 use Dingo\Api\Routing\Helpers;
@@ -25,10 +26,20 @@ use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Dingo\Api\Exception\StoreResourceFailedException;
 
+/**
+ * @Resource("Trip", uri="/trip")
+ */
 class TripController extends Controller
 {
-    use Helpers, TripHelper;
+    use Helpers;
 
+    /**
+     * Get trip list created by user
+     *
+     * @Get("/")
+     * @Versions({"v1"})
+     * @Response(200, body=)
+     */
     public function listTrip()
     {
         try {
@@ -37,9 +48,19 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators', 'attractions']]));
+        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators']]));
     }
 
+    /**
+     * Get filtered trip list created by user
+     *
+     * @Get("/search/{keyword}")
+     * @Versions({"v1"})
+     * @Parameters({
+     *     @Parameter("keyword", type="string", required=true, description="The keyword of trip title to filter."),
+     * })
+     * @Response(200, body={ "data": { { "id": 298, "title": "Testing Trip", "owner_id": 27, "owner": "Test ing", "visit_date": "2018-02-20", "visit_length": 3, "created_at": 1518771616, "updated_at": 1518771616, "collaborators": {}, "image": "" } } })
+     */
     public function listTripByKeyword($keyword)
     {
         try{
@@ -51,9 +72,19 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators', 'attractions']]));
+        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators']]));
     }
 
+    /**
+     * Get trip detail created by user
+     *
+     * @Get("/{id}")
+     * @Versions({"v1"})
+     * @Parameters({
+     *     @Parameter("id", type="integer", required=true, description="The id of trip to filter."),
+     * })
+     * @Response(200, body={ "id": 298, "title": "Testing Trip", "owner_id": 27, "owner": "Test ing", "visit_date": "2018-02-20", "visit_length": 1, "created_at": 1518771616, "updated_at": 1518771616, "collaborators": { { "id": 166641, "user": { "id":"1", "first_name":"test", "last_name": "test" }, "created_at": 0, "updated_at": 0 } }, "itinerary": { { "id": 29402, "visit_date": "2018-02-20", "created_at": 1518771616, "updated_at": 1518771616, "nodes": { { "id": 1, "attraction_id": 796, "name": "晴空巷咖啡", "image": "", "type": {}, "tag": "BREAKFAST", "time": "08:30", "duration": 3600, "distance": 0, "travel_duration": 0, "fare": {}, "mode": "", "route": {} }, { "id": 2, "attraction_id": 148, "name": "Café Showroom", "image": "https://lh3.googleusercontent.com/p/AF1QipNr1xJMVekvqd1bqg8PjWF8t5DiFJU7-2C54os=s1600-w400", "type": {"ART_AND_ARCHITECTURE_LOVER", "FOODIE"}, "tag": "art_gallery", "time": "9:32", "duration": 3600, "distance": 225, "travel_duration": 167, "fare": {}, "mode": "walking", "route": {} } } } } })
+     */
     public function listTripByUser($id)
     {
         try {
@@ -68,18 +99,33 @@ class TripController extends Controller
         return $this->response->item($trip, new TripTransformer(['include' => ['collaborators', 'itinerary']]));
     }
 
+    /**
+     * Create a new trip
+     *
+     * @Post("/")
+     * @Versions({"v1"})
+     * @Request("title=foo&visit_date=2018-02-21&visit_length=3&city_id=1&auto_generate=1", contentType="application/x-www-form-urlencoded")
+     * @Response(201)
+     */
     public function createTrip(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title'         => 'required|min:1|max:255',
             'visit_date'    => 'required|date',
-            'visit_length'  => 'required|integer|min:1|max:30'
+            'visit_length'  => 'required|integer|min:1|max:30',
+            'city_id'       => 'required|exists:cities,id',
+            'auto_generate' => 'required|boolean'
         ]);
 
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
         try {
             DB::beginTransaction();
+            $city = City::find($request->city_id);
             $trip = Auth::User()->trips()->create([
                 'title' => $request->title,
+                'city_id' => $city->id,
                 'visit_date' => $request->visit_date,
                 'visit_length' => $request->visit_length
             ]);
@@ -87,10 +133,14 @@ class TripController extends Controller
             $itinerary = [];
             for ($i = 0; $i < $request->visit_length; $i++) {
                 $itinerary[] = [
-                    'visit_date' => $visit_date->addDay()->format('Y-m-j')
+                    'visit_date' => $visit_date->format('Y-m-j')
                 ];
+                $visit_date->addDay();
             }
-            $trip->itinerary()->createMany($itinerary);
+            $itinerary_item = $trip->itinerary()->createMany($itinerary);
+            if ($request->auto_generate) {
+                $this->generateItinerary($city, $itinerary_item);
+            }
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -100,13 +150,27 @@ class TripController extends Controller
         return $this->response->created();
     }
 
+    /**
+     * Edit an existing trip
+     *
+     * @Put("/{id}")
+     * @Versions({"v1"})
+     * @Request("title=foo&visit_date=2018-02-21&visit_length=3", contentType="application/x-www-form-urlencoded")
+     * @Parameters({
+     *     @Parameter("id", type="integer", required=true, description="The id of trip to edit."),
+     * })
+     * @Response(204)
+     */
     public function editTrip(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'title'         => 'present|max:255',
-            'visit_date'    => 'present|date',
-            'visit_length'  => 'present|min:1|max:30'
+            'title'        => 'present|max:255',
+            'visit_date'   => 'present|date',
+            'visit_length' => 'present|min:1|max:30'
         ]);
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
         try {
             if (!$trip = Auth::User()->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             DB::beginTransaction();
@@ -138,6 +202,16 @@ class TripController extends Controller
         return $this->response->noContent();
     }
 
+    /**
+     * Delete an existing trip
+     *
+     * @Delete("/{id}")
+     * @Versions({"v1"})
+     * @Parameters({
+     *     @Parameter("id", type="integer", required=true, description="The id of trip to delete."),
+     * })
+     * @Response(204)
+     */
     public function deleteTrip(Request $request, $id)
     {
         try {
@@ -150,13 +224,16 @@ class TripController extends Controller
         return $this->response->noContent();
     }
 
-    //add item to Trip Itinerary
     public function assignItineraryItem(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'attraction_id'     => 'required|integer|min:1|max:10',
-            'visit_time'        => 'required|time'
+            'attraction_id' => 'required|integer|min:1|max:10',
+            'visit_time'    => 'required|time',
+            'duration' => 'required|min:600|max:18000'
         ]);
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
         try {
             $tripItinerary = Auth::User()->itinerary()->find($id);
             $attraction = Attraction::find($request->attraction_id);
@@ -174,13 +251,16 @@ class TripController extends Controller
         return $this->response->created();
     }
 
-    //edit Itinerary Item
     public function editItineraryItem(Request $request, $itinerary_id, $item_id)
     {
         $validator = Validator::make($request->all(), [
-            'attraction_id'     => 'required|integer|min:1|max:10',
-            'visit_time'    => 'required|time'
+            'attraction_id' => 'required|integer|min:1|max:10',
+            'visit_time'    => 'required|time',
+            'duration'      => 'required|min:600|max:18000'
         ]);
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
         try {
             $itinerary = Auth::User()->itinerary()->find($itinerary_id);
             if (!$itineraryItem = ItineraryItem::find($item_id)) throw new NotFoundHttpException(trans('notfound.itineraryItem'));
@@ -196,7 +276,6 @@ class TripController extends Controller
         return $this->response->noContent();
     }
 
-    //delete Itinerary Item
     public function deleteItineraryItem(Request $request, $itinerary_id, $item_id)
     {
         try {
@@ -211,4 +290,49 @@ class TripController extends Controller
         return $this->response->noContent();
     }
 
+    // public function generateItinerary($city_id, $itineraries)
+    public function generateItinerary($city)
+    {
+        try {
+            $city = City::find($city);
+            $trip = Auth::User()->trips()->first();
+            $itineraries = $trip->itinerary;
+            // Set user preferences to helper class.
+            // Create remaining timeslot array for each preferences.
+            $tripPlanner = new TripHelper([
+                'cityId' => $city->id,
+                'location' => [$city->latitude, $city->longitude],
+                'preferences' => Auth::User()->tags,
+                'visitDate' => $itineraries->first()->visit_date,
+                'visitLength' => sizeof($itineraries)
+            ]);
+            DB::beginTransaction();
+            foreach ($itineraries as $node) {
+                $timetable = $tripPlanner->generateTimetable();
+                foreach ($timetable as $item) {
+                    $node->items()->create([
+                        'attraction_id' => $item['attraction_id'],
+                        'visit_time' => $item['time'],
+                        'duration' => $item['duration'],
+                        'travel_duration' => $item['travel_duration'] ?? 0,
+                        'distance' => $item['distance'] ?? 0,
+                        'peak_hour' => $item['peakHour'] ?? false,
+                        'type' => $item['type'],
+                        'fare' => $item['fare'] ?? [],
+                        'mode' => $item['mode'] ?? null
+                    ]);
+                }
+                $visitedPlaces = [];
+                foreach ($tripPlanner->visitedPlaces['id'] as $visited) {
+                    $visitedPlaces[] = ['attraction_id' => $visited];
+                }
+                Auth::User()->visited()->createMany($visitedPlaces);
+            }
+            DB::commit();
+        } catch (\PDOException $e) {
+            DB::rollback();
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+    }
 }

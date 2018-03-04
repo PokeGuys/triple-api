@@ -33,7 +33,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'user_tags');
+    }
+
+    public function visited()
+    {
+        return $this->hasMany(VisitedPlace::class);
     }
 
     public function getJWTIdentifier()

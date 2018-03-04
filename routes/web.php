@@ -34,23 +34,24 @@ $api->version('v1', [
 
     // Auth Required
     $api->group(['middleware' => 'auth:api'], function($api) {
+        $api->get('/test/{id}', 'Auth\TripController@generateItinerary');
         $api->group(['prefix' => 'member'], function($api) {
             $api->get('/perference', 'Auth\UserController@generatePerference');
             $api->put('/perference', 'Auth\UserController@setPerference');
             $api->get('/info', 'Auth\UserController@getInfo');
         });
         $api->group(['prefix' => 'trip'], function($api) {
-            $api->get('/', 'TripController@listTrip');
-            $api->get('/{id}', 'TripController@listTripByUser');
-            $api->get('search/{keyword}', 'TripController@listTripByKeyword');
-            $api->post('/', 'TripController@createTrip');
-            $api->put('/{id}', 'TripController@editTrip');
-            $api->delete('/{id}', 'TripController@deleteTrip');
+            $api->get('/', 'Auth\TripController@listTrip');
+            $api->get('/{id}', 'Auth\TripController@listTripByUser');
+            $api->get('search/{keyword}', 'Auth\TripController@listTripByKeyword');
+            $api->post('/', 'Auth\TripController@createTrip');
+            $api->put('/{id}', 'Auth\TripController@editTrip');
+            $api->delete('/{id}', 'Auth\TripController@deleteTrip');
         });
         $api->group(['prefix' => 'itinerary'], function($api) {
-            $api->post('/{id}', 'TripController@assignItineraryItem');
-            $api->put('/{id}', 'TripController@editItineraryItem');
-            $api->delete('/{id}', 'TripController@deleteItineraryItem');
+            $api->post('/{id}', 'Auth\TripController@assignItineraryItem');
+            $api->put('/{id}', 'Auth\TripController@editItineraryItem');
+            $api->delete('/{id}', 'Auth\TripController@deleteItineraryItem');
         });
     });
 });

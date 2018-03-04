@@ -10,7 +10,7 @@ class Trip extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['status', 'title', 'user_id', 'visit_date', 'visit_length'];
+    protected $fillable = ['status', 'title', 'user_id', 'city_id', 'visit_date', 'visit_length'];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
     public function user()
@@ -18,9 +18,14 @@ class Trip extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
     public function collaborators()
     {
-        return $this->hasMany(TripCollaborator::class);
+        return $this->belongsToMany(User::class, 'trip_collaborators');
     }
 
     public function itinerary()

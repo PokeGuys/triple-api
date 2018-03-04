@@ -14,10 +14,20 @@ use League\Fractal\Resource\Collection;
 use League\Fractal\Serializer\DataArraySerializer;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
+/**
+ * @Resource("System")
+ */
 class SystemController extends Controller
 {
     use Helpers;
 
+    /**
+     * Show system property
+     *
+     * @Get("/system/property")
+     * @Versions({"v1"})
+     * @Response(200, body={"income":{{"id":0,"description":"Below 10000"},{"id":1,"description":"10000-14999"}},"age":{{"id":0,"description":"Under 12"},{"id":1,"description":"13-17"}},"city":{{"id":1,"country":"Taiwan","name":"Taipei","photo":""}}})
+     */
     public function getProperty()
     {
         try {

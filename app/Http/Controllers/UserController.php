@@ -22,28 +22,24 @@ use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Dingo\Api\Exception\StoreResourceFailedException;
 
+/**
+ * @Resource("User", uri="/member")
+ */
 class UserController extends Controller
 {
     use Helpers;
 
+    /**
+     * Account registration
+     *
+     * @Post("/register")
+     * @Versions({"v1"})
+     * @Request("username=foo&password=bar&password_confirmation=bar&first_name=foo&last_name=bar&gender=M&income=0&age=2&email=foo@bar.com", contentType="application/x-www-form-urlencoded")
+     * @Response(201)
+     */
     public function register(Request $request)
     {
-        /*
-         * Get User IP from request header.
-         * 
-         * If the website is using CloudFlare, get IP from "CF-Connecting-IP"
-         * Else, "REMOTE_ADDR".
-         * 
-         **/
         $IP = $request->header('CF-Connecting-IP') ?? $request->ip();
-
-        /* 
-         * Validate user input. Using "|" to separate different rules.
-         * 
-         * ref. doc: https://laravel.com/docs/5.5/validation#manually-creating-validators
-         * Avaliable Rule: https://laravel.com/docs/5.5/validation#available-validation-rules
-         * 
-         **/
         $validator = Validator::make($request->all(), [
             'username' => 'required|min:6|max:20|unique:users',
             'password' => 'required|min:6|confirmed',
@@ -55,20 +51,15 @@ class UserController extends Controller
             'email' => 'required|email|max:255|unique:users'
         ]);
 
-        // Still returning 200
         if ($validator->fails()) {
             throw new StoreResourceFailedException($validator->errors()->first());
         }
 
         try {
-            // Generate random string as token
             $token = Str::random(40);
             DB::beginTransaction();
             // Sending Verification mail
-            //Mail::to($request->email)->queue(new VerificationMail($token));
-
-            // Create user record
-            // Using bcrypt to hash password as security measurement.
+            // Mail::to($request->email)->queue(new VerificationMail($token));
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
@@ -81,13 +72,6 @@ class UserController extends Controller
                 'regip' => $IP
             ]);
 
-            /* 
-            * Add new record with foreign key
-            * 
-            * Define relation: https://laravel.com/docs/5.5/eloquent-relationships#defining-relationships
-            * How to use: https://laravel.com/docs/5.5/eloquent-relationships#inserting-and-updating-related-models
-            * 
-            **/
             $user->verification()->create([
                 'token' => $token
             ]);
@@ -100,6 +84,14 @@ class UserController extends Controller
         return $this->response->created();
     }
 
+    /**
+     * Authentication
+     *
+     * @Post("/authentication")
+     * @Versions({"v1"})
+     * @Request("username=foo&password=bar", contentType="application/x-www-form-urlencoded")
+     * @Response(200, body={"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ", "user": {"id": 27, "status": 1, "username": "testing0278", "email": "tripletest@gmail.co22m", "first_name": "Test", "last_name": "ing", "age": 1, "gender": "M", "income": 1, "created_at": 1518771320, "updated_at": 1519158413}})
+     */
     public function authenticate(Request $request) {
         $credentials = $request->only('username', 'password');
         $validator = Validator::make($request->all(), [
@@ -131,5 +123,31 @@ class UserController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->array(compact('token', 'user'));
+    }
+
+    /**
+     * Forget Password
+     *
+     * @Post("/password/forget")
+     * @Versions({"v1"})
+     * @Request("username=foo&email=foo@bar.com", contentType="application/x-www-form-urlencoded")
+     * @Response(201)
+     */
+    public function forgetPassword(Request $request)
+    {
+        throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
+    }
+
+    /**
+     * Reset Password
+     *
+     * @Post("/password/reset")
+     * @Versions({"v1"})
+     * @Request("username=foo&password=bar&password_confirmation=bar&email=foo@bar.com&token=123456", contentType="application/x-www-form-urlencoded")
+     * @Response(201)
+     */
+    public function resetPassword(Request $request)
+    {
+        throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
     }
 }

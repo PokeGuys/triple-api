@@ -18,13 +18,13 @@ class AttractionTransformer extends TransformerAbstract
         $this->model = $attraction;
         return $this->transformWithField([
             'id' => $attraction->id,
-            'category' => $attraction->category,
             'name' => $attraction->name,
             'phone' => $attraction->phone,
             'email' => $attraction->email,
             'website' => $attraction->website,
-            'address' => json_decode($attraction->address),
-            'tags' => json_decode($attraction->tags),
+            'address' => $attraction->address,
+            'tags' => $attraction->tags,
+            'photos' => $attraction->photos,
             'latitude' => $attraction->latitude,
             'longitude' => $attraction->longitude,
             'rating' => $attraction->rating,
