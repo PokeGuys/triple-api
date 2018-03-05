@@ -31,7 +31,7 @@ class UserController extends Controller
         return $this->response->item($user, new UserTransformer);
     }
 
-    public function generatePerference(Request $request)
+    public function generatePreference(Request $request)
     {
         try {
             $user = Auth::User();
@@ -48,5 +48,10 @@ class UserController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->array(json_decode($output, true));
+    }
+
+    public function setPreference(Request $request)
+    {
+        throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
     }
 }
