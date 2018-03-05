@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import keras
@@ -43,8 +44,12 @@ def preprocess(dataset):
 
 
 def predict(age, gender):
-    model = load_model('preference.model')
-    dataset = readfile('users.csv')
+    dir = os.path.dirname(__file__)
+    modelPath = os.path.join(dir, 'preference.model')
+    datasetPath = os.path.join(dir, 'preference.csv')
+
+    model = load_model(modelPath)
+    dataset = readfile(datasetPath)
     X, y, enc = preprocess(dataset)
     data = enc.transform(np.array([[age, gender]])).toarray()
 
@@ -63,5 +68,5 @@ def predict(age, gender):
 
 if __name__ == '__main__':
     age = sys.argv[1]
-    gender = sys.argv[2]
+    gender = 0 if sys.argv[2] == 'F' else 1
     predict(age, gender)
