@@ -3,6 +3,7 @@
 namespace App\Transformers;
 
 use App\Models\Attraction;
+use Cache;
 
 class AttractionTransformer extends TransformerAbstract
 {
@@ -35,8 +36,11 @@ class AttractionTransformer extends TransformerAbstract
         ]);
     }
 
-    public function includecomments(Attraction $attraction)
+    public function includeComments(Attraction $attraction)
     {
-        return $this->collection($attraction->comments, new AttractionCommentTransformer);
+        $comments = Cache::remember("attraction_comment_by_attracion_$attraction->id", 10, function () use ($attraction) {
+            return $attraction->comments;
+        });
+        return $this->collection($comments, new AttractionCommentTransformer);
     }
 }

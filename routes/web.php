@@ -18,14 +18,14 @@ $api->version('v1', [
     'namespace' => 'App\Http\Controllers'
 ], function ($api) {
     // Public
-    $api->get('system/property', 'SystemController@getProperty');
+    $api->get('/system/property', 'SystemController@getProperty');
     $api->group(['prefix' => 'member'], function($api) {
-        $api->post('register', 'UserController@register');
-        $api->post('authentication', 'UserController@authenticate');
-        $api->post('password/forget', 'UserController@forgetPassword');
-        $api->post('password/reset', 'UserController@resetPassword');
-        $api->post('resend/email', 'VerifyController@resendConfrimation');
-        $api->get('confirm/{token}', 'VerifyController@confirmation');
+        $api->post('/register', 'UserController@register');
+        $api->post('/authentication', 'UserController@authenticate');
+        $api->post('/password/forget', 'UserController@forgetPassword');
+        $api->post('/password/reset', 'UserController@resetPassword');
+        $api->post('/resend/email', 'VerifyController@resendConfrimation');
+        $api->get('/confirm/{token}', 'VerifyController@confirmation');
     });
     $api->group(['prefix' => 'attraction'], function($api) {
         $api->get('/', 'AttractionController@getRows');
@@ -34,7 +34,6 @@ $api->version('v1', [
 
     // Auth Required
     $api->group(['middleware' => 'auth:api'], function($api) {
-        $api->get('/test/{id}', 'Auth\TripController@generateItinerary');
         $api->group(['prefix' => 'member'], function($api) {
             $api->get('/perference', 'Auth\UserController@generatePerference');
             $api->put('/perference', 'Auth\UserController@setPerference');
@@ -43,7 +42,7 @@ $api->version('v1', [
         $api->group(['prefix' => 'trip'], function($api) {
             $api->get('/', 'Auth\TripController@listTrip');
             $api->get('/{id}', 'Auth\TripController@listTripByUser');
-            $api->get('search/{keyword}', 'Auth\TripController@listTripByKeyword');
+            $api->get('/search/{keyword}', 'Auth\TripController@listTripByKeyword');
             $api->post('/', 'Auth\TripController@createTrip');
             $api->put('/{id}', 'Auth\TripController@editTrip');
             $api->delete('/{id}', 'Auth\TripController@deleteTrip');

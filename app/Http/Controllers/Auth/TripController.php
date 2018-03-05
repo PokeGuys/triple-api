@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use Auth;
+use Cache;
 use Log;
 use Validator;
 use Carbon\Carbon;
@@ -43,7 +44,10 @@ class TripController extends Controller
     public function listTrip()
     {
         try {
-            $trips = Auth::User()->trips()->get();
+            $user = Auth::getUser();
+            $trips = Cache::remember("trips_user_{$user->id}", 10, function() use ($user) {
+                return $user->trips;
+            });
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -88,7 +92,10 @@ class TripController extends Controller
     public function listTripByUser($id)
     {
         try {
-            $trip = Auth::User()->trips()->find($id);
+            $user = Auth::getUser();
+            $trip = Cache::remember("trip_{$id}", 10, function() use ($user, $id) {
+                return $user->trips()->find($id);
+            });
             if (!$trip) {
                 throw new NotFoundHttpException(trans('notfound.trip'));
             }
@@ -111,8 +118,8 @@ class TripController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title'         => 'required|min:1|max:255',
-            'visit_date'    => 'required|date',
-            'visit_length'  => 'required|integer|min:1|max:30',
+            'visit_date'    => 'required|date|after:today',
+            'visit_length'  => 'required|integer|min:1|max:7',
             'city_id'       => 'required|exists:cities,id',
             'auto_generate' => 'required|boolean'
         ]);
@@ -165,8 +172,8 @@ class TripController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title'        => 'present|max:255',
-            'visit_date'   => 'present|date',
-            'visit_length' => 'present|min:1|max:30'
+            'visit_date'   => 'present|date|after:today',
+            'visit_length' => 'present|min:1|max:7'
         ]);
         if ($validator->fails()) {
             throw new StoreResourceFailedException($validator->errors()->first());
@@ -291,12 +298,9 @@ class TripController extends Controller
     }
 
     // public function generateItinerary($city_id, $itineraries)
-    public function generateItinerary($city)
+    public function generateItinerary($city, $itineraries)
     {
         try {
-            $city = City::find($city);
-            $trip = Auth::User()->trips()->first();
-            $itineraries = $trip->itinerary;
             // Set user preferences to helper class.
             // Create remaining timeslot array for each preferences.
             $tripPlanner = new TripHelper([

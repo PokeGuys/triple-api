@@ -11,6 +11,7 @@ use GuzzleHttp\Promise;
 use Carbon\Carbon;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Validator;
 
 class TripHelper
 {
@@ -151,6 +152,12 @@ class TripHelper
         list($missingPlace, $requestQueue) = $this->insertPlaces($api, $placesWithType['recommand']);
         $places = $placesWithType['recommand'];
         if (isset($placesWithType['explore'])) {
+            foreach ($placesWithType['explore'] as $key => $explore) {
+                $venue = $explore->venue;
+                if ($this->isGym($venue->categories[0]->name) || $this->isGym($venue->name) || $this->isFood($venue->categories[0]->name)) {
+                    unset($placesWithType['explore'][$key]);
+                }
+            }
             list($missingExplore, $exploreRequestQueue) = $this->insertPlaces($api, $placesWithType['explore']);
             $missingPlace = array_merge($missingPlace, $missingExplore);
             $requestQueue = array_merge($requestQueue, $exploreRequestQueue);
@@ -287,8 +294,20 @@ class TripHelper
         ];
     }
 
+    private function isGym($category) {
+        return Validator::make(['category' => $category], [
+            'category' => ['regex:/dojo|fitness|fittness/i']
+        ])->passes();
+    }
+
+    private function isFood($category) {
+        return Validator::make(['category' => $category], [
+            'category' => ['regex:/bar|restaurant|kitchen|grill|buffet|sandwich|steak|walmart|pub|brewery|warehouse|big\sbox\sstore|grocrey/i']
+        ])->passes();
+    }
+
     private function transformPhoto($photo) {
-        return $photo->preffix . 'original' . $photo->suffix;
+        return $photo->prefix . 'original' . $photo->suffix;
     }
 
     private function transformCategories($categories) {

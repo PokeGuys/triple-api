@@ -55,6 +55,11 @@ return [
             'visibility' => 'public',
         ],
 
+        'predict' => [
+            'driver' => 'local',
+            'root' => base_path('predict'),
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_KEY'),

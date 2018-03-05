@@ -3,6 +3,7 @@
 namespace App\Transformers;
 
 use App\Models\ItineraryItem;
+use Cache;
 
 class ItineraryItemTransformer extends TransformerAbstract
 {
@@ -34,6 +35,9 @@ class ItineraryItemTransformer extends TransformerAbstract
 
     public function includeattraction(ItineraryItem $item)
     {
-        return $this->item($item->attraction, new AttractionTransformer);
+        $attraction = Cache::remember("attraction_by_itinerary_$item->id", 60, function () use ($item) {
+            return $item->attraction;
+        });
+        return $this->item($attraction, new AttractionTransformer);
     }
 }

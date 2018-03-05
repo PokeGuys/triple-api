@@ -3,6 +3,7 @@
 namespace App\Transformers;
 
 use App\Models\Trip;
+use Cache;
 
 class TripTransformer extends TransformerAbstract
 {
@@ -16,12 +17,18 @@ class TripTransformer extends TransformerAbstract
     public function transform(Trip $trip)
     {
         $this->model = $trip;
+        $city = Cache::remember("city_{$trip->city_id}", 60, function() use ($trip) {
+            return $trip->city;
+        });
+        $user = Cache::remember("user_{$trip->user_id}", 60, function() use ($trip) {
+            return $trip->user;
+        });
         return $this->transformWithField([
             'id' => $trip->id,
             'title' => $trip->title,
             'owner_id' => $trip->user_id,
-            'image' => $trip->city->photo_url,
-            'owner' => $trip->user->name(),
+            'image' => $city->photo_url,
+            'owner' => $user->name(),
             'visit_date' => $trip->visit_date,
             'visit_length' => $trip->visit_length,
             'created_at' => strtotime($trip->created_at),
@@ -31,7 +38,10 @@ class TripTransformer extends TransformerAbstract
 
     public function includecollaborators(Trip $trip)
     {
-        return $this->collection($trip->collaborators, new UserTransformer([
+        $collaborators = Cache::remember("trip_collaborators_{$trip->user_id}", 60, function () use ($trip) {
+            return $trip->collaborators;
+        });
+        return $this->collection($collaborators, new UserTransformer([
             'only' => [
                 'id',
                 'username',
@@ -43,6 +53,9 @@ class TripTransformer extends TransformerAbstract
 
     public function includeitinerary(Trip $trip)
     {
-        return $this->collection($trip->itinerary, new TripItineraryTransformer);
+        $itinerary = Cache::remember("trip_itinerary_{$trip->id}", 60, function () use ($trip) {
+            return $trip->itinerary;
+        });
+        return $this->collection($itinerary, new TripItineraryTransformer);
     }
 }

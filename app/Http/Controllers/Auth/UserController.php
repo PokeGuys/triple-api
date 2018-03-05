@@ -35,15 +35,15 @@ class UserController extends Controller
     {
         try {
             $user = Auth::User();
-
-            $process = new Process("python /var/app/predict/predict.py {$user->age} {$user->gender} {$user->income}");
+            $path = storage_path('/predict/predict.py');
+            $process = new Process("python $path {$user->age} {$user->gender}");
             $process->run();
 
             if (!$process->isSuccessful()) {
                 throw new ProcessFailedException($process);
             }
             $output = $process->getOutput();
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }

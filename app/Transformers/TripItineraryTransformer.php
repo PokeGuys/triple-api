@@ -3,6 +3,7 @@
 namespace App\Transformers;
 
 use App\Models\TripItinerary;
+use Cache;
 
 class TripItineraryTransformer extends TransformerAbstract
 {
@@ -26,6 +27,9 @@ class TripItineraryTransformer extends TransformerAbstract
 
     public function includenodes(TripItinerary $itinerary)
     {
-        return $this->collection($itinerary->items, new ItineraryItemTransformer);
+        $items = Cache::remember("trip_itinerary_item_{$itinerary->id}", 60, function () use ($itinerary) {
+            return $itinerary->items;
+        });
+        return $this->collection($items, new ItineraryItemTransformer);
     }
 }

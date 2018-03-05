@@ -174,7 +174,6 @@ return [
         Greggilbert\Recaptcha\RecaptchaServiceProvider::class,
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
 
-
         /*
          * Application Service Providers...
          */
