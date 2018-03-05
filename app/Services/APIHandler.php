@@ -22,7 +22,7 @@ class APIHandler
             new CacheMiddleware(
                 new PrivateCacheStrategy(
                     new LaravelCacheStorage(
-                        Cache::store('file')
+                        Cache::store(config('cache.default'))
                     )
                 )
             ),
