@@ -29,6 +29,8 @@ class AttractionTransformer extends TransformerAbstract
             'latitude' => $attraction->latitude,
             'longitude' => $attraction->longitude,
             'rating' => $attraction->rating,
+            'opening_hours' => $attraction->opening_hours,
+            'popular' => $attraction->popular,
             'comment_count' => $attraction->comment_count,
             'photo_count' => $attraction->photo_count,
             'created_at' => strtotime($attraction->created_at),
