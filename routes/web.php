@@ -39,7 +39,13 @@ $api->version('v1', [
             $api->put('/preference', 'Auth\UserController@setPreference');
             $api->get('/info', 'Auth\UserController@getInfo');
         });
+        $api->group(['prefix' => 'attraction'], function($api) {
+            $api->get('/bookmarks', 'Auth\AttractionController@getBookmarks');
+            $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
+        });
         $api->group(['prefix' => 'trip'], function($api) {
+            $api->get('/bookmarks', 'Auth\TripController@getBookmarks');
+            $api->post('/{id}/bookmark', 'Auth\TripController@setBookmark');
             $api->get('/', 'Auth\TripController@listTrip');
             $api->get('/{id}', 'Auth\TripController@listTripByUser');
             $api->get('/search/{keyword}', 'Auth\TripController@listTripByKeyword');

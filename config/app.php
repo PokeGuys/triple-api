@@ -173,6 +173,7 @@ return [
         Dingo\Api\Provider\LaravelServiceProvider::class,
         Greggilbert\Recaptcha\RecaptchaServiceProvider::class,
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        Clockwork\Support\Laravel\ClockworkServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -235,6 +236,7 @@ return [
         'Recaptcha' => Greggilbert\Recaptcha\Facades\Recaptcha::class,
         'JWTAuth'   => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
+        'Clockwork' => Clockwork\Support\Laravel\Facade::class,
 
     ],
 

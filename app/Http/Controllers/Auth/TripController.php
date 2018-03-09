@@ -52,7 +52,7 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators']]));
+        return $this->response->collection($trips, new TripTransformer);
     }
 
     /**
@@ -76,7 +76,7 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer(['include' => ['collaborators']]));
+        return $this->response->collection($trips, new TripTransformer);
     }
 
     /**
@@ -104,6 +104,37 @@ class TripController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->item($trip, new TripTransformer(['include' => ['collaborators', 'itinerary']]));
+    }
+
+    public function getBookmarks()
+    {
+        try {
+            $user = Auth::getUser();
+            $trips = Cache::remember("bookmark_trip_user_{$user->id}", 20, function() use ($user) {
+                return $user->bookmarkedTrip;
+            });
+            if (!$trips) {
+                throw new NotFoundHttpException(trans('notfound.trip'));
+            }
+        } catch (Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->collection($trips, new TripTransformer);
+    }
+
+    public function setBookmarks($id)
+    {
+        try {
+            $user = Auth::getUser();
+            $user->tripBookmark()->create([
+                'trip_id' => $id
+            ]);
+        } catch (Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
     }
 
     /**

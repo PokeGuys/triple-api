@@ -26,9 +26,19 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Trip::class);
     }
 
+    public function bookmarkedTrip()
+    {
+        return $this->belongsToMany(Trip::class, 'trip_bookmarks');
+    }
+
+    public function bookmarkedAttraction()
+    {
+        return $this->belongsToMany(Attraction::class, 'attraction_bookmarks');
+    }
+
     public function name()
     {
-        return $this->first_name . " " . $this->last_name;
+        return $this->first_name." ".$this->last_name;
     }
 
     public function tags()
@@ -38,7 +48,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function visited()
     {
-        return $this->hasMany(VisitedPlace::class);
+        return $this->belongsToMany(Attraction::class, 'visited_places');
     }
 
     public function getJWTIdentifier()
