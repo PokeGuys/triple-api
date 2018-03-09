@@ -21,6 +21,9 @@ class AttractionController extends Controller
     use Helpers;
 
     public function updateAttraction(Request $request, $id) {
+        $validator = Validator::make($request->all(), [
+            ''
+        ]);
         if ($validattor->fails())
             throw new StoreResourceFailedException($validator->errors()->first());
     }

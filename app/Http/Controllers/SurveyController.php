@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use Auth;
 use Log;
 use Validator;
+use Excel;
+use App\Models\Survey;
 use Carbon\Carbon;
-use App\Http\Traits\TripHelper;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\ExcelServiceProvider;
 
 class SurveyController extends Controller
 {
-    use Helpers, TripHelper;
+    use Helpers;
 
     //Collect survey result
     public function input(Request $request)
@@ -30,7 +32,10 @@ class SurveyController extends Controller
             'history'       => 'required|integer|min:0|max:5',
             'shopping'      => 'required|integer|min:0|max:5'
         ]);
-
+        if ($validator->fails())
+        {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
         try {
             DB::beginTransaction();
             $survey = Survey::create([
@@ -55,8 +60,24 @@ class SurveyController extends Controller
         return $this->response->created();
     }
 
-    //Export csv
+    /**
+     * Export survety result as .csv
+     *
+     * @Get("/")
+     */
     public function export()
     {
+        try{
+            $user = Auth::getUser();
+            $items = Survey::all();
+            Excel::create('items', function($excel) use($items) {
+                $excel->sheet('ExportFile', function($sheet) use($items) {
+                    $sheet->fromArray($items);
+                });
+            })->download('csv');
+        } catch(Exception $e){
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
     }
 }

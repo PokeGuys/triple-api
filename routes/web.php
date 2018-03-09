@@ -60,6 +60,7 @@ $api->version('v1', [
         });
         $api->group(['prefix' => 'survey'], function($api) {
             $api->post('/', 'SurveyController@input');
+            $api->get('/', 'SurveyController@export');
         });
     });
 });
