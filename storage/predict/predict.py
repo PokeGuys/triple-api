@@ -62,8 +62,8 @@ def predict(age, gender):
     resp = []
     for idx, value in np.ndenumerate(prediction_prob[0]):
         tag = AVAILABLE_COLUMN[idx[0]]
-        resp.append({'key': tag, 'value': value})
-    print(resp)
+        resp.append({'key': tag, 'value': np.float64(value)})
+    print(json.dumps(resp))
 
 
 if __name__ == '__main__':
