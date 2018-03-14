@@ -7,6 +7,7 @@ use Cache;
 
 class TripTransformer extends TransformerAbstract
 {
+    protected $defaultIncludes = ['city'];
     protected $availableIncludes = ['collaborators', 'itinerary'];
 
     public function __construct($fields = null)
@@ -17,9 +18,6 @@ class TripTransformer extends TransformerAbstract
     public function transform(Trip $trip)
     {
         $this->model = $trip;
-        $city = Cache::remember("city_{$trip->city_id}", 60, function() use ($trip) {
-            return $trip->city;
-        });
         $user = Cache::remember("user_{$trip->user_id}", 60, function() use ($trip) {
             return $trip->user;
         });
@@ -27,7 +25,6 @@ class TripTransformer extends TransformerAbstract
             'id' => $trip->id,
             'title' => $trip->title,
             'owner_id' => $trip->user_id,
-            'image' => $city->photo_url,
             'owner' => $user->name(),
             'visit_date' => $trip->visit_date,
             'visit_length' => $trip->visit_length,
@@ -57,5 +54,13 @@ class TripTransformer extends TransformerAbstract
             return $trip->itinerary;
         });
         return $this->collection($itinerary, new TripItineraryTransformer);
+    }
+
+    public function includecity(Trip $trip)
+    {
+        $city = Cache::remember("city_{$trip->city_id}", 60, function() use ($trip) {
+            return $trip->city;
+        });
+        return $this->item($city, new CityTransformer);
     }
 }
