@@ -90,7 +90,7 @@ class TripController extends Controller
     {
         try {
             $user = Auth::getUser();
-            $trip = Cache::remember("trip_{$id}", 10, function() use ($user, $id) {
+            $trip = Cache::remember("trip_{$id}_user_{$user->id}", 10, function() use ($user, $id) {
                 return $user->trips()->find($id);
             });
             if (!$trip) {
@@ -123,7 +123,7 @@ class TripController extends Controller
     public function setBookmark($id)
     {
         try {
-            if (!Cache::remember("trips_user_{$user->id}", 10, function() use ($user) { return $user->trips; }))
+            if (!Cache::remember("trip_{$id}_user_{$user->id}", 10, function() use ($user) { return $user->trips; }))
                 throw new NotFoundHttpException(trans('notfound.trip'));
             $user = Auth::getUser();
             $user->bookmarkedTrip()->syncWithoutDetaching(['trip_id' => $id]);
@@ -158,6 +158,7 @@ class TripController extends Controller
         }
         try {
             DB::beginTransaction();
+            $user = Auth::getUser();
             $city = City::find($request->city_id);
             $trip = Auth::User()->trips()->create([
                 'title' => $request->title,
@@ -165,6 +166,7 @@ class TripController extends Controller
                 'visit_date' => $request->visit_date,
                 'visit_length' => $request->visit_length
             ]);
+            Cache::put("trip_{$trip->id}_user_{$user->id}", $trip, 10);
             $visit_date = Carbon::parse($request->visit_date);
             $itinerary = [];
             for ($i = 0; $i < $request->visit_length; $i++) {
@@ -208,7 +210,8 @@ class TripController extends Controller
             throw new StoreResourceFailedException($validator->errors()->first());
         }
         try {
-            if (!$trip = Auth::User()->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
+            $user = Auth::User();
+            if (!$trip = $user->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             DB::beginTransaction();
             $orgin_date = Carbon::parse($trip->visit_date);
             $new_date = Carbon::parse($request->visit_date);
@@ -218,6 +221,7 @@ class TripController extends Controller
                 'visit_date' => $request->visit_date,
                 'visit_length' => $request->visit_length
             ])->save();
+            Cache::put("trip_{$id}_user_{$user->id}", $trip, 10);
             if (!$keep_date) {
                 $trip->itinerary()->forceDelete();
                 $visit_date = Carbon::parse($request->visit_date);
@@ -251,8 +255,10 @@ class TripController extends Controller
     public function deleteTrip(Request $request, $id)
     {
         try {
-            if (!$trip = Auth::User()->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
+            $user = Auth::User();
+            if (!$trip = $user->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             $trip->delete();
+            Cache::forget("trip_{$id}_user_{$user->id}");
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));

@@ -31,9 +31,6 @@ class AttractionController extends Controller
             $attractions = Cache::remember("attractions", 60, function() {
                 return $attracions = Attraction::all();
             });
-            if (!$attractions) {
-                throw new NotFoundHttpException(trans('notfound.attracions'));
-            }
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
