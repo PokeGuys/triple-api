@@ -123,13 +123,13 @@ class TripController extends Controller
         return $this->response->collection($trips, new TripTransformer);
     }
 
-    public function setBookmarks($id)
+    public function setBookmark($id)
     {
         try {
+            $trip = $this->listTripByUser($id);
             $user = Auth::getUser();
-            $user->tripBookmark()->create([
-                'trip_id' => $id
-            ]);
+            $user->bookmarkedTrip()->syncWithoutDetaching(['trip_id' => $id]);
+            Cache::put("bookmark_trip_user_{$user->id}", $user->bookmarkedTrip, 20);
         } catch (Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -328,8 +328,35 @@ class TripController extends Controller
         return $this->response->noContent();
     }
 
-    // public function generateItinerary($city_id, $itineraries)
-    public function generateItinerary($city, $itineraries)
+    public function generateArticle($id) {
+        try {
+            $user = Auth::getUser();
+            $trip = Cache::remember("trip_{$id}_userid_{$user->id}", 10, function() use ($user, $id) {
+                return $user->trips()->find($id);
+            });
+            if (!$trip) {
+                throw new NotFoundHttpException(trans('notfound.trip'));
+            }
+            $tripItem = Cache::remember("itinerary_item_trip_{$trip->id}", 60, function () use ($trip) {
+                return $trip->items;
+            });
+            $article = $tripItem->map(function ($value, $key) {
+                return Cache::remember("attraction_{$value->attraction_id}", 60, function() use ($value) {
+                    return $value->attraction;
+                });
+            })->filter(function ($value, $key) {
+                return !empty($value->description) && !in_array('4bf58dd8d48988d1fa931735', $value->tags);
+            })->sortByDesc(function ($value, $key) {
+                return $value->rating;
+            });
+        } catch (\Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->array(['feature_places' => $article->toArray()]);
+    }
+
+    private function generateItinerary($city, $itineraries)
     {
         try {
             // Set user preferences to helper class.
@@ -361,7 +388,7 @@ class TripController extends Controller
                 foreach ($tripPlanner->visitedPlaces['id'] as $visited) {
                     $visitedPlaces[] = ['attraction_id' => $visited];
                 }
-                Auth::User()->visited()->createMany($visitedPlaces);
+                Auth::User()->visited()->syncWithoutDetaching($visitedPlaces);
             }
             DB::commit();
         } catch (\PDOException $e) {
