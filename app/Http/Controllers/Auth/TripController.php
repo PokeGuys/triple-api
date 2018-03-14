@@ -52,7 +52,7 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer);
+        return $this->response->collection($trips, new TripTransformer(['include' => 'city']));
     }
 
     /**
@@ -69,14 +69,11 @@ class TripController extends Controller
     {
         try{
             $trips = Auth::User()->trips()->where('title', 'like', '%'.$keyword.'%')->get();
-            if (!$trips) {
-                throw new NotFoundHttpException(trans('notfound.trips'));
-            }
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($trips, new TripTransformer);
+        return $this->response->collection($trips, new TripTransformer(['include' => 'city']));
     }
 
     /**
@@ -103,7 +100,7 @@ class TripController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($trip, new TripTransformer(['include' => ['collaborators', 'itinerary']]));
+        return $this->response->item($trip, new TripTransformer(['include' => ['city', 'collaborators', 'itinerary']]));
     }
 
     public function getBookmarks()
@@ -126,7 +123,8 @@ class TripController extends Controller
     public function setBookmark($id)
     {
         try {
-            $trip = $this->listTripByUser($id);
+            if (!Cache::remember("trips_user_{$user->id}", 10, function() use ($user) { return $user->trips; }))
+                throw new NotFoundHttpException(trans('notfound.trip'));
             $user = Auth::getUser();
             $user->bookmarkedTrip()->syncWithoutDetaching(['trip_id' => $id]);
             Cache::put("bookmark_trip_user_{$user->id}", $user->bookmarkedTrip, 20);

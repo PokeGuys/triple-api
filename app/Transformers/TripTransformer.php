@@ -7,8 +7,7 @@ use Cache;
 
 class TripTransformer extends TransformerAbstract
 {
-    protected $defaultIncludes = ['city'];
-    protected $availableIncludes = ['collaborators', 'itinerary'];
+    protected $availableIncludes = ['city', 'collaborators', 'itinerary'];
 
     public function __construct($fields = null)
     {

@@ -20,10 +20,20 @@ abstract class TransformerAbstract extends BasicTransformer {
     {
         $temp = $this->defaultIncludes;
         $this->defaultIncludes = [];
-        foreach($this->fields['only'] as $filter) {
-            $index = collect($temp)->search($filter);
+        if (is_string($this->fields['only'])) {
+            $filter = $this->fields['only'];
+            $index = collect($this->defaultIncludes)->search($filter);
             if ($index !== false) {
-                $this->defaultIncludes[] = $filter;
+                unset($this->defaultIncludes[$index]);
+            } else if (isset($data[$filter])) {
+                unset($data[$filter]);
+            }
+        } else {
+            foreach($this->fields['only'] as $filter) {
+                $index = collect($temp)->search($filter);
+                if ($index !== false) {
+                    $this->defaultIncludes[] = $filter;
+                }
             }
         }
         return array_intersect_key($data, array_flip($this->fields['only']));
@@ -32,14 +42,24 @@ abstract class TransformerAbstract extends BasicTransformer {
     protected function filter($data)
     {
         if (isset($this->fields['filter'])) {
-          foreach($this->fields['filter'] as $filter) {
+            if (is_string($this->fields['filter'])) {
+                $filter = $this->fields['filter'];
                 $index = collect($this->defaultIncludes)->search($filter);
                 if ($index !== false) {
                     unset($this->defaultIncludes[$index]);
                 } else if (isset($data[$filter])) {
                     unset($data[$filter]);
                 }
-          }
+            } else {
+                foreach($this->fields['filter'] as $filter) {
+                    $index = collect($this->defaultIncludes)->search($filter);
+                    if ($index !== false) {
+                        unset($this->defaultIncludes[$index]);
+                    } else if (isset($data[$filter])) {
+                        unset($data[$filter]);
+                    }
+                }
+            }
         }
         return $data;
     }
@@ -47,12 +67,22 @@ abstract class TransformerAbstract extends BasicTransformer {
     protected function include($data)
     {
         if (isset($this->fields['include'])) {
-            foreach($this->fields['include'] as $include) {
+            if (is_string($this->fields['include'])) {
+                $include = $this->fields['include'];
                 if (collect($this->availableIncludes)->contains($include)) {
                     $this->defaultIncludes[] = $include;
                     $data[$include] = $this->{"include$include"}($this->model);
                 } else {
                     $data[$include] = $this->model->{$include};
+                }
+            } else {
+                foreach($this->fields['include'] as $include) {
+                    if (collect($this->availableIncludes)->contains($include)) {
+                        $this->defaultIncludes[] = $include;
+                        $data[$include] = $this->{"include$include"}($this->model);
+                    } else {
+                        $data[$include] = $this->model->{$include};
+                    }
                 }
             }
         }
