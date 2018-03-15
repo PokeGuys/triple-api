@@ -25,11 +25,16 @@ class AttractionController extends Controller
      * @Versions({"v1"})
      * @Response(200, body={ "data": { { "id": 1, "name": "Taipei 101 Observatory", "phone": "+886 2 8101 8898", "email": null, "website": "http://www.taipei-101.com.tw/tw/observatory-info.aspx", "address": "110, Taiwan, Taipei City, Xinyi District, Section 5, Xinyi Road, 7號89樓", "tags": { "point_of_interest", "establishment" }, "latitude": "25.0336076", "longitude": "121.5647587", "rating": "4.30", "comment_count": 0, "photo_count": 0, "created_at": 1518970328, "updated_at": 1518970329 }, } })
      */
-    public function getRows(Request $request)
+    public function getRows(Request $request, $id)
     {
         try {
-            $attractions = Cache::remember("attractions", 60, function() {
-                return $attracions = Attraction::all();
+            $city = Cache::remember("city_$id", 60, function () use ($id) { 
+                return Ctiy::find($id);
+            });
+            if (!$city)
+                throw new NotFoundHttpException(trnas('notfound.city'));
+            $attractions = Cache::remember("attractions_city_{$id}", 60, function() {
+                return $attracions = $city->attractions;
             });
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -56,6 +61,9 @@ class AttractionController extends Controller
             });
             if (!$attraction) {
                 throw new NotFoundHttpException(trans('notfound.attracion'));
+            }
+            if (Carbon::now()->diffInDays($attraction->updated_at) > 14) {
+                
             }
         } catch (\PDOException $e) {
             Log::error($e);

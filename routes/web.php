@@ -27,8 +27,10 @@ $api->version('v1', [
         $api->post('/resend/email', 'VerifyController@resendConfrimation');
         $api->get('/confirm/{token}', 'VerifyController@confirmation');
     });
+    $api->group(['prefix' => 'city'], function($api) {
+        $api->get('/{id}/attractions', 'AttractionController@getRows');
+    });
     $api->group(['prefix' => 'attraction'], function($api) {
-        $api->get('/', 'AttractionController@getRows');
         $api->get('/{id}', 'AttractionController@getInfo');
     });
 
