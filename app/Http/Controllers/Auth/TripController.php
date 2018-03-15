@@ -388,11 +388,10 @@ class TripController extends Controller
                         'mode' => $item['mode'] ?? null
                     ]);
                 }
-                $visitedPlaces = [];
-                foreach ($tripPlanner->visitedPlaces['id'] as $visited) {
-                    $visitedPlaces[] = ['attraction_id' => $visited];
-                }
-                Auth::User()->visited()->syncWithoutDetaching($visitedPlaces);
+            }
+            $history = Auth::User()->visited();
+            foreach ($tripPlanner->visitedPlaces['id'] as $visited) {
+                $history->syncWithoutDetaching(['attraction_id' => $visited]);
             }
             DB::commit();
         } catch (\PDOException $e) {
