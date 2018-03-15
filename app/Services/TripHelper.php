@@ -178,17 +178,19 @@ class TripHelper
             }
         }
         foreach ($places as $place) {
-            $picked = $place;
-            $hours = $place->openingHour($this->currentTime);
-            if ($hours != null) {
-                if ($this->firstPlace() && $this->isMorning($hours->openAt)) {
-                    $this->currentTime->setTime($hours->openAt->hour, $hours->openAt->minute);
-                }
-                $stayDuration = $this->getStayDuration($place);
-                $stayTime = $this->currentTime->copy()->addSeconds($stayDuration);
-                $acutualStayDuration = abs($hours->closeAt->diffInSeconds($stayTime));
-                if ($acutualStayDuration >= $stayDuration * 0.7) {
-                    return $place;
+            if (!in_array($place->place_id, $this->visitedPlaces['place_id'])) {
+                $picked = $place;
+                $hours = $place->openingHour($this->currentTime);
+                if ($hours != null) {
+                    if ($this->firstPlace() && $this->isMorning($hours->openAt)) {
+                        $this->currentTime->setTime($hours->openAt->hour, $hours->openAt->minute);
+                    }
+                    $stayDuration = $this->getStayDuration($place);
+                    $stayTime = $this->currentTime->copy()->addSeconds($stayDuration);
+                    $acutualStayDuration = abs($hours->closeAt->diffInSeconds($stayTime));
+                    if ($acutualStayDuration >= $stayDuration * 0.7) {
+                        return $place;
+                    }
                 }
             }
         }
