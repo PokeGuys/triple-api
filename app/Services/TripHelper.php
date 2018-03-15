@@ -94,7 +94,7 @@ class TripHelper
             $this->currentTime->addSeconds($travel['travel_duration']);
         }
         $currentDate = $this->currentTime->format('Y-m-d');
-        $currentTime = $this->currentTime->format('H:i');    
+        $currentTime = $this->currentTime->format('H:i');
         $this->timetable[$currentDate][] = array_merge($travel, [
             'attraction_id' => $place->id,
             'peakHour' => $place->popularHour($this->currentTime) !== null,
@@ -220,6 +220,7 @@ class TripHelper
                     'latitude'    => $venue->location->lat,
                     'longitude'   => $venue->location->lng,
                     'rating'      => $venue->rating ?? 0,
+                    'rating_count' => $venue->ratingSignals ?? 0,
                     'website'     => $venue->url ?? '',
                     'phone'       => $venue->contact->phone ?? '',
                     'price_level' => $venue->price->tier ?? 0,
@@ -276,7 +277,7 @@ class TripHelper
         // Temp. Future plan: Extract from DB by using attraction tag.
         return rand(3600, 10800);
     }
-    
+
     private function getTravelInfo($origin, $destination) {
         $api = new DirectionAPI();
         $options = [
@@ -366,7 +367,7 @@ class TripHelper
     private function resetMeal()
     {
         $this->meal = [
-            ['key' => 'lunch', 'value' => false], 
+            ['key' => 'lunch', 'value' => false],
             ['key' => 'dinner', 'value' => false]
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Cache;
 use Request;
+use App\Models\City;
 use App\Models\Attraction;
 use App\Http\Controllers\Controller;
 use App\Services\Wikipedia\SearchAPI;
@@ -33,10 +34,10 @@ class AttractionController extends Controller
     {
         try {
             $city = Cache::remember("city_$id", 60, function () use ($id) {
-                return Ctiy::find($id);
+                return City::find($id);
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
-            $attractions = Cache::remember("attractions_city_{$id}", 60, function() {
+            $attractions = Cache::remember("attractions_city_{$id}", 60, function() use ($city){
                 return $city->attractions;
             });
         } catch (\PDOException $e) {
@@ -102,6 +103,7 @@ class AttractionController extends Controller
                     'description' => $description ?? '',
                     'website' => $info->website ?? '',
                     'rating' => $info->rating ?? 0,
+                    'rating_count' => $info->ratingSignals ?? 0,
                     'website' => $info->url ?? '',
                     'phone' => $info->contact->phone ?? '',
                     'price_level' => $info->price->tier ?? 0,

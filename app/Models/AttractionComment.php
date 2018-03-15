@@ -10,8 +10,11 @@ class AttractionComment extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['rating', 'title', 'content'];
+    protected $fillable = ['rating', 'title', 'content', 'photos'];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+    protected $casts = [
+        'photos' => 'array',
+    ];
 
     public function attraction()
     {
@@ -21,10 +24,5 @@ class AttractionComment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function images()
-    {
-        return $this->hasMany(AttractionImage::class, 'comment_id', 'id');
     }
 }

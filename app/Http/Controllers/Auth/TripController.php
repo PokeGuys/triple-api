@@ -375,6 +375,7 @@ class TripController extends Controller
                         'description' => $description ?? '',
                         'website' => $info->website ?? '',
                         'rating'      => $info->rating ?? 0,
+                        'rating_count' => $info->ratingSignals ?? 0,
                         'website'     => $info->url ?? '',
                         'phone' => $info->contact->phone ?? '',
                         'price_level' => $info->price->tier ?? 0,
