@@ -119,9 +119,9 @@ class TripController extends Controller
 
     public function setBookmark($id) {
         try {
+            $user = Auth::getUser();
             if (!Cache::remember("trip_{$id}_user_{$user->id}", 10, function() use ($user) { return $user->trips; }))
                 throw new NotFoundHttpException(trans('notfound.trip'));
-            $user = Auth::getUser();
             $user->bookmarkedTrip()->syncWithoutDetaching(['trip_id' => $id]);
             Cache::put("bookmark_trip_user_{$user->id}", $user->bookmarkedTrip, 20);
         } catch (Exception $e) {
