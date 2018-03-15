@@ -14,6 +14,10 @@ class SummaryAPI extends WikipediaAPI
     public function parse($response) {
         $summary = json_decode($response->getBody()->getContents());
         if (isset($summary->extract)) {
+            if (isset($summary->type) && $summary->type == 'disambiguation') {
+                $this->logger->error('[Wikipedia] SummaryAPI: Disambiguation Resposne.');
+                return (object) ['error' => true, 'message' => 'Unexpected error'];
+            }
             $this->logger->debug('[Wikipedia] SummaryAPI: Request Succeed');
             return $summary->extract;
         } else {

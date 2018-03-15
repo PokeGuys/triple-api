@@ -13,7 +13,6 @@ class SearchAPI extends WikipediaAPI
                 'action' => 'query',
                 'list' => 'search',
                 'srsearch' => $keyword,
-                'srwhat' => 'nearmatch',
                 'format' => 'json',
                 'srprop' => 'timestamp'
             ]

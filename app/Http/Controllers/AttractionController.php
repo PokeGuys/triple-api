@@ -77,11 +77,14 @@ class AttractionController extends Controller
                 } else {
                     $searchAPI = new SearchAPI();
                     $summaryAPI = new SummaryAPI();
-                    $result = $searchAPI->fetch($bestName ?? $info->name);
-                    if (!isset($result->error)) {
-                        $summary = $summaryAPI->fetch($result->title);
-                        if (!isset($summary->error)) {
-                            $description = $summary;
+                    $keyword = trim(preg_replace("/\p{Han}+/u", '', !empty($bestName) ? $bestName : $info->name));
+                    if (!empty($keyword)) {
+                        $result = $searchAPI->fetch($keyword);
+                        if (!isset($result->error)) {
+                            $summary = $summaryAPI->fetch($result->title);
+                            if (!isset($summary->error)) {
+                                $description = $summary;
+                            }
                         }
                     }
                 }
