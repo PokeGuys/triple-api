@@ -63,6 +63,7 @@ def predict(age, gender):
     for idx, value in np.ndenumerate(prediction_prob[0]):
         tag = AVAILABLE_COLUMN[idx[0]]
         resp.append({'key': tag, 'value': np.float64(value)})
+    resp = sorted(resp, key=lambda k: k.get('value', 0), reverse=True)
     print(json.dumps(resp))
 
 
