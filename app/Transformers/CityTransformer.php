@@ -22,6 +22,9 @@ class CityTransformer extends TransformerAbstract
             'id' => $city->id,
             'country' => $country->name,
             'name' => $city->name,
+            'latitude' => $city->latitude,
+            'longitude' => $city->longitude,
+            'timezone' => $city->timezone,
             'description' => $city->description,
             'photo' => $city->photo_url
         ]);

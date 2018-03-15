@@ -8,17 +8,17 @@ class DetailAPI extends FoursquareAPI
 {
     public function fetch($placeId) {
         $this->logger->debug('[Foursquare] DetailAPI: Initial Request');
-        return $this->client->getAsync("venues/$placeId", [
-            'query' => $this->appendConfig($options)
-        ]);
+        try {
+            return $this->parse($this->client->get("venues/$placeId", [
+                'query' => $this->appendConfig()
+            ]));
+        } catch (Exception $e) {
+            return (object) ['error' => true, 'message' => 'Unexpected error'];
+        }
     }
 
-    public function parse($response) {
-        if (isset($response['state']) && $response['state'] == 'rejected') {
-            $this->logger->debug('[Foursquare] DetailAPI: Too Many Requests');
-            throw new ServiceUnavailableHttpException(120, 'Unexpected Error');
-        }
-        $place = json_decode($response['value']->getBody()->getContents());
+    private function parse($response) {
+        $place = json_decode($response->getBody()->getContents());
         if ($place->meta->code == 200) {
             $this->logger->debug('[Foursquare] DetailAPI: Request Succeed');
             return $place->response->venue;

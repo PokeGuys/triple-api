@@ -11,7 +11,7 @@ class Attraction extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['description', 'place_id', 'city_id', 'name', 'phone', 'website', 'email', 'opening_hours', 'popular', 'address', 'tags', 'photos', 'latitude', 'longitude', 'rating', 'price_level', 'comment_count', 'photo_count'];
+    protected $fillable = ['description', 'place_id', 'city_id', 'name', 'local_name', 'phone', 'website', 'email', 'opening_hours', 'popular', 'address', 'tags', 'photos', 'latitude', 'longitude', 'rating', 'price_level', 'comment_count', 'photo_count'];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
     protected $casts = [
         'tags' => 'array',

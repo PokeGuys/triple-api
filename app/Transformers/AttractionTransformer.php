@@ -20,8 +20,8 @@ class AttractionTransformer extends TransformerAbstract
         return $this->transformWithField([
             'id' => $attraction->id,
             'name' => $attraction->name,
+            'local_name' => $attraction->local_name,
             'phone' => $attraction->phone,
-            'email' => $attraction->email,
             'website' => $attraction->website,
             'address' => $attraction->address,
             'tags' => $attraction->tags,

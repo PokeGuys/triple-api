@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services\Wikipeidia;
+namespace App\Services\Wikipedia;
 
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
-class SearchAPI extends FoursquareAPI
+class SearchAPI extends WikipediaAPI
 {
     public function fetch($keyword) {
         $this->logger->debug('[Wikipedia] SearchAPI: Initial Request');
-        return $this->client->getAsync("https://en.wikipedia.org/w/api.php", [
+        return $this->parse($this->client->get("https://en.wikipedia.org/w/api.php", [
             'query' => [
                 'action' => 'query',
                 'list' => 'search',
@@ -17,15 +17,11 @@ class SearchAPI extends FoursquareAPI
                 'format' => 'json',
                 'srprop' => 'timestamp'
             ]
-        ]);
+        ]));
     }
 
-    public function parse($response) {
-        if (isset($response['state']) && $response['state'] == 'rejected') {
-            $this->logger->debug('[Wikipedia] SearchAPI: Unexpected Error');
-            throw new ServiceUnavailableHttpException(120, 'Unexpected Error');
-        }
-        $result = json_decode($response['value']->getBody()->getContents());
+    private function parse($response) {
+        $result = json_decode($response->getBody()->getContents());
         if (!empty($result->query->search)) {
             $this->logger->debug('[Wikipedia] SearchAPI: Request Succeed');
             return $result->query->search[0];

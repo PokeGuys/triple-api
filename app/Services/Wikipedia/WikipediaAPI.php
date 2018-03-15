@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Wikipeidia;
+namespace App\Services\Wikipedia;
 
 use App\Services\APIHandler;
 use GuzzleHttp\Client;

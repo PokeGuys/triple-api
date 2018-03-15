@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Attraction;
-use App\Transformers\AttractionTransformer;
-use App\Http\Controllers\Controller;
-use Dingo\Api\Routing\Helpers;
-use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Cache;
 use Request;
+use App\Models\Attraction;
+use App\Http\Controllers\Controller;
+use App\Services\Wikipedia\SearchAPI;
+use App\Services\Wikipedia\SummaryAPI;
+use App\Services\Foursquare\DetailAPI;
+use App\Transformers\AttractionTransformer;
+use Carbon\Carbon;
+use Dingo\Api\Routing\Helpers;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 /**
  * @Resource("Attraction", uri="/attraction")
@@ -28,13 +32,12 @@ class AttractionController extends Controller
     public function getRows(Request $request, $id)
     {
         try {
-            $city = Cache::remember("city_$id", 60, function () use ($id) { 
+            $city = Cache::remember("city_$id", 60, function () use ($id) {
                 return Ctiy::find($id);
             });
-            if (!$city)
-                throw new NotFoundHttpException(trnas('notfound.city'));
+            if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
             $attractions = Cache::remember("attractions_city_{$id}", 60, function() {
-                return $attracions = $city->attractions;
+                return $city->attractions;
             });
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -62,17 +65,55 @@ class AttractionController extends Controller
             if (!$attraction) {
                 throw new NotFoundHttpException(trans('notfound.attracion'));
             }
-            if (Carbon::now()->diffInDays($attraction->updated_at) > 14) {
-                
+            if (!isset($attraction->description) || Carbon::now()->diffInDays($attraction->updated_at) > 14) {
+                $api = new DetailAPI();
+                $info = $api->fetch($attraction->place_id);
+                $bestName = $info->venueChains[0]->bestName->name ?? '';
+                $photos = $info->photos->groups[0]->items ?? [];
+                $existedPhotos = $attraction->photos;
+                $totalNum = 0;
+                if (isset($info->description)) {
+                    $description = $info->description;
+                } else {
+                    $searchAPI = new SearchAPI();
+                    $summaryAPI = new SummaryAPI();
+                    $result = $searchAPI->fetch($bestName ?? $info->name);
+                    if (!isset($result->error)) {
+                        $summary = $summaryAPI->fetch($result->title);
+                        if (!isset($summary->error)) {
+                            $description = $summary;
+                        }
+                    }
+                }
+                foreach ($photos as $photo) {
+                    $photo = $photo->prefix.'original'.$photo->suffix;
+                    if (!in_array($photo, $existedPhotos)) {
+                        $existedPhotos[] = $photo;
+                        $totalNum++;
+                    }
+                }
+                $attraction->increment('photo_count', $totalNum);
+                $attraction->fill([
+                    'name' => $info->name,
+                    'local_name' => $bestName,
+                    'description' => $description ?? '',
+                    'website' => $info->website ?? '',
+                    'rating' => $venue->rating ?? 0,
+                    'website' => $venue->url ?? '',
+                    'phone' => $info->contact->phone ?? '',
+                    'price_level' => $venue->price->tier ?? 0,
+                    'photos' => $existedPhotos,
+                    'address' => join(' ', $info->location->formattedAddress),
+                    'price_level' => $info->price->tier ?? 0,
+                ])->save();
+                Cache::put("attraction_$id", $attraction, 60);
             }
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->item($attraction, new AttractionTransformer([
-            'include' => [
-                'comments'
-            ]
+            'include' => 'comments'
         ]));
     }
 }
