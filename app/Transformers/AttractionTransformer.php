@@ -26,6 +26,7 @@ class AttractionTransformer extends TransformerAbstract
             'address' => $attraction->address,
             'tags' => $attraction->tags,
             'photos' => $attraction->photos,
+            'bestPhoto' => $attraction->photos[0] ?? null,
             'latitude' => $attraction->latitude,
             'longitude' => $attraction->longitude,
             'rating' => $attraction->rating,
