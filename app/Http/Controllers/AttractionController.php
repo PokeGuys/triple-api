@@ -32,6 +32,8 @@ class AttractionController extends Controller
      */
     public function getRows(Request $request, $id)
     {
+        $limit = $request->limit ?? 30;
+        $limit = $limit > 30 ? 30 : $limit;
         try {
             $city = Cache::remember("city_$id", 60, function () use ($id) {
                 return City::find($id);
@@ -43,7 +45,7 @@ class AttractionController extends Controller
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->paginator($attractions->paginate(30), new AttractionTransformer, ['key' => 'data']);
+        return $this->response->paginator($attractions->paginate($limit), new AttractionTransformer, ['key' => 'data']);
     }
 
 
