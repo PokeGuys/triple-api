@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Cache;
-use Request;
 use App\Models\City;
 use App\Models\Attraction;
 use App\Http\Controllers\Controller;
@@ -13,6 +12,7 @@ use App\Services\Foursquare\DetailAPI;
 use App\Transformers\AttractionTransformer;
 use Carbon\Carbon;
 use Dingo\Api\Routing\Helpers;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
