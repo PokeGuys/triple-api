@@ -43,6 +43,7 @@ $api->version('v1', [
             $api->get('/preference', 'Auth\UserController@generatePreference');
             $api->put('/preference', 'Auth\UserController@setPreference');
             $api->get('/info', 'Auth\UserController@getInfo');
+            $api->put('/info', 'Auth\UserController@updateInfo');
         });
         $api->group(['prefix' => 'attraction'], function($api) {
             $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
