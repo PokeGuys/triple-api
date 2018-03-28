@@ -46,6 +46,7 @@ $api->version('v1', [
             $api->put('/info', 'Auth\UserController@updateInfo');
         });
         $api->group(['prefix' => 'attraction'], function($api) {
+            $api->post('/{id}/review', 'Auth\AttractionController@placeReview');
             $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
         });
         $api->group(['prefix' => 'trip'], function($api) {

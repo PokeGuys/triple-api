@@ -40,9 +40,7 @@ class AttractionController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->collection($attractions, new AttractionTransformer([
-            'only' => ['id', 'name', 'tags', 'photos'],
-        ]));
+        return $this->response->collection($attractions, new AttractionTransformer);
     }
 
     public function setBookmark($id) {
@@ -62,5 +60,47 @@ class AttractionController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->noContent();
+    }
+
+    public function placeReview(Request $request, $id) {
+        $validator = Validator::make($request->all(), [
+            'title'   => 'required|min:1|max:255',
+            'message' => 'required|min:1',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
+        try {
+            DB::beginTransaction();
+            
+            $attraction = Cache::remember("attraction_$id", 60, function() use ($id) {
+                return Attraction::find($id);
+            });
+            if (!$attraction) {
+                throw new NotFoundHttpException(trans('notfound.attracion'));
+            }
+            $user = Auth::getUser();
+            $attraction->reviews()->create([
+                'user_id' => $user->id,
+                'title' => $request->title,
+                'message' => $request->message,
+                'rating' => $request->rating,
+            ]);
+            $newRating = $attraction->rating + (($request->rating - $attraction->rating) / ($attraction->rating_count + 1));
+            $attraction->increment('comment_count');
+            $attraction->increment('rating_count');
+            $attraction->forceFill([
+                'rating' => $newRating,
+            ])->save();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($trip, new TripTransformer(['include' => ['city', 'collaborators', 'itinerary']]));
     }
 }
