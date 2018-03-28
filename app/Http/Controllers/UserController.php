@@ -150,7 +150,7 @@ class UserController extends Controller
             }
             $token = Str::random(40);
             Mail::to($request->email, new ForgetPasswordMail($token));
-            PasswordReset::updateOrCreate(['email' => $request->email], ['token' => $token]);
+            $forget->updateOrCreate(['email' => $request->email], ['token' => $token]);
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
