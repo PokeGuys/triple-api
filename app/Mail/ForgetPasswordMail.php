@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Config;
 
-class VerificationMail extends Mailable implements ShouldQueue
+class ForgetPasswordMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
     
@@ -38,13 +38,13 @@ class VerificationMail extends Mailable implements ShouldQueue
     public function build()
     {
         URL::forceRootUrl(Config::get('app.url'));
-        return $this->view('verify')
-            ->subject('[Triple] 驗證您的電子郵件地址')
+        return $this->view('forget')
+            ->subject('[Triple] 忘記密碼')
             ->with([
-                'introLines' => array('請點擊以下連結即可完成帳號認證： '),
+                'introLines' => array('請點擊以下連結即可完成重置密碼：'),
                 'actionText' => secure_url('confirm', $this->token),
                 'actionUrl' => secure_url('confirm', $this->token),
-                'outroLines' => array('基於安全性考量，認證有效時間為送出認證信開始的24小時內。', '逾時請重新申請認證信。', '如果你沒有申請帳戶，請無視此通知 '),
+                'outroLines' => array('基於安全性考量，有效時間為送出重置密碼信開始的24小時內。', '逾時請重新申請重置密碼。', '如果你沒有申請重置密碼，請無視此通知 '),
             ]);
     }
 }

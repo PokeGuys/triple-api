@@ -63,6 +63,7 @@ class VerifyController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
+        return $this->response->noContent();
     }
 
     private function valid_user($username, $password) {

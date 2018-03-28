@@ -46,14 +46,14 @@ class UserController extends Controller
         try {
             $user = Auth::User();
             foreach ($info as $key => $value) {
-                if (empty($member->{$key})) $fill[$key] = $value;
+                if (empty($user->{$key})) $fill[$key] = $value;
             }
-            $member->fill($fill)->save();
+            $user->fill($fill)->save();
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($user, new UserTransformer);
+        return $this->response->noContent();
     }
 
     public function generatePreference(Request $request)
@@ -73,6 +73,25 @@ class UserController extends Controller
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
         return $this->response->array(json_decode($output, true));
+    }
+
+    public function updatePassword(Request $request) {
+        $validator = Validator::make($info, [
+            'oldPassword' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
+        ]);
+        if ($validator->fails()) {
+            throw new StoreResourceFailedException($validator->errors()->first());
+        }
+        try {
+            $user = Auth::User();
+            if (!Hash::check($request->oldPassword, $member->password)) throw new UnauthorizedHttpException(trans('auth.failed'));
+            $member->forceFill(['password' => bcrypt($request->password)])->save();
+        } catch (\PDOException $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
     }
 
     public function setPreference(Request $request)
