@@ -109,7 +109,7 @@ class TripHelper
     private function getPlace($tags, $location) {
         $explore = new ExploreAPI();
         $recommand = new RecommandationAPI();
-        if ($this->explore === null) {
+        if ($tags[0] != '4bf58dd8d48988d1fa931735' && $this->explore === null) {
             $requestQueue[] = $explore->fetch(30000, $this->location);
         }
         // 1. All tags
@@ -163,7 +163,7 @@ class TripHelper
             $requestQueue = array_merge($requestQueue, $exploreRequestQueue);
             $this->explore = $placesWithType['explore'];
             $places = array_merge($places, $placesWithType['explore']);
-        } else {
+        } else if (isset($this->explore)) {
             $places = array_merge($places, $this->explore);
         }
         if (count($requestQueue) > 0) {
@@ -310,7 +310,7 @@ class TripHelper
     }
 
     private function transformPhoto($photo) {
-        return $photo->prefix . 'original' . $photo->suffix;
+        return [$photo->prefix . 'original' . $photo->suffix];
     }
 
     private function transformCategories($categories) {
