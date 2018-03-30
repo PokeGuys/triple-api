@@ -6,7 +6,9 @@ use Auth;
 use Log;
 use Validator;
 use Carbon\Carbon;
+use App\Mail\ForgetPasswordMail;
 use App\Mail\VerificationMail;
+use App\Models\PasswordReset;
 use App\Models\User;
 use App\Transformers\UserTransformer;
 use App\Http\Controllers\Controller;
@@ -133,9 +135,26 @@ class UserController extends Controller
      * @Request("username=foo&email=foo@bar.com", contentType="application/x-www-form-urlencoded")
      * @Response(201)
      */
-    public function forgetPassword(Request $request)
-    {
-        throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
+    public function forgetPassword(Request $request) {
+        $validator = Validator::make($request->all(), [
+          'username' => 'required|min:6|max:20',
+          'email' => 'required|email|max:255',
+        ]);
+        if ($validator->fails()) throw new UnprocessableEntityHttpException($validator->errors()->first());
+        try {
+            if (!$member = Member::where('username', $request->username)->where('email', $request->email)->first())
+                throw new NotFoundHttpException(trans('custom.notfound.member'));
+            if ($forget = $member->passwordReset) {
+                if (Carbon::now()->diffInMinutes($forget->updated_at) < 15)
+                    throw new UnprocessableEntityHttpException(trans('custom.limit'));
+            }
+            $token = Str::random(40);
+            Mail::to($request->email, new ForgetPasswordMail($token));
+            $forget->forceFill(['token' => $token])->save();
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->noContent();
     }
 
     /**
@@ -146,8 +165,7 @@ class UserController extends Controller
      * @Request("username=foo&password=bar&password_confirmation=bar&email=foo@bar.com&token=123456", contentType="application/x-www-form-urlencoded")
      * @Response(201)
      */
-    public function resetPassword(Request $request)
-    {
+    public function resetPassword(Request $request) {
         throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
     }
 }

@@ -161,6 +161,7 @@ class TripController extends Controller
                 'visit_date' => $request->visit_date,
                 'visit_length' => $request->visit_length
             ]);
+            Cache::forget("trips_user_{$user->id}");
             Cache::put("trip_{$trip->id}_user_{$user->id}", $trip, 10);
             $visit_date = Carbon::parse($request->visit_date);
             $itinerary = [];

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Cache;
-use Request;
 use App\Models\City;
 use App\Models\Attraction;
 use App\Http\Controllers\Controller;
@@ -13,6 +12,7 @@ use App\Services\Foursquare\DetailAPI;
 use App\Transformers\AttractionTransformer;
 use Carbon\Carbon;
 use Dingo\Api\Routing\Helpers;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
@@ -32,6 +32,8 @@ class AttractionController extends Controller
      */
     public function getRows(Request $request, $id)
     {
+        $limit = $request->limit ?? 30;
+        $limit = $limit > 30 ? 30 : $limit;
         try {
             $city = Cache::remember("city_$id", 60, function () use ($id) {
                 return City::find($id);
@@ -43,7 +45,7 @@ class AttractionController extends Controller
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->paginator($attractions->paginate(30), new AttractionTransformer, ['key' => 'data']);
+        return $this->response->paginator($attractions->paginate($limit), new AttractionTransformer, ['key' => 'data']);
     }
 
 
@@ -77,11 +79,11 @@ class AttractionController extends Controller
                     $description = $info->description;
                 } else {
                     $searchAPI = new SearchAPI();
-                    $summaryAPI = new SummaryAPI();
                     $keyword = trim(preg_replace("/\p{Han}+/u", '', !empty($bestName) ? $bestName : $info->name));
                     if (!empty($keyword)) {
                         $result = $searchAPI->fetch($keyword);
                         if (!isset($result->error)) {
+                            $summaryAPI = new SummaryAPI();
                             $summary = $summaryAPI->fetch($result->title);
                             if (!isset($summary->error)) {
                                 $description = $summary;
