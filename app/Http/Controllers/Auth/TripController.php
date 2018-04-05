@@ -252,6 +252,7 @@ class TripController extends Controller
             $user = Auth::User();
             if (!$trip = $user->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             $trip->delete();
+            Cache::forget("trips_user_{$user->id}");
             Cache::forget("trip_{$id}_user_{$user->id}");
         } catch (\PDOException $e) {
             Log::error($e);
