@@ -49,6 +49,95 @@ class AttractionController extends Controller
     }
 
 
+
+    public function getAllAttractions(Request $request, $id)
+    {
+        try {
+            $city = Cache::remember("city_$id", 60, function () use ($id) {
+                return City::find($id);
+            });
+            if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
+            $attractions = Cache::remember("all_attractions_city_{$id}", 60, function() use ($city){
+                 return $city->attractions;
+             });
+
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($attractions, new AttractionTransformer , ['key' => 'data']);
+    }
+
+
+
+    public function getHotels(Request $request, $id)
+    {
+        try {
+            $city = Cache::remember("city_$id", 10, function () use ($id) {
+                return City::find($id);
+            });
+            if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
+            $attractions = Cache::remember("attractions_hotels_city_{$id}", 10, function() use ($city){
+                $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735");
+                $condition = implode(" OR ", array_map(function($tag) {
+                    return "JSON_CONTAINS(tags, '\"$tag\"')";
+                }, $tags));
+                return $city->attractions()->whereRaw($condition)->get();
+             });
+
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+    }
+
+
+
+    public function getRestaurants(Request $request, $id)
+    {
+
+        try {
+            $city = Cache::remember("city_$id", 10, function () use ($id) {
+                return City::find($id);
+            });
+            if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
+            $attractions = Cache::remember("attractions_restaurants_city_{$id}", 10, function() use ($city){
+                $tags = array("4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8");
+                $condition = implode(" OR ", array_map(function($tag) {
+                    return "JSON_CONTAINS(tags, '\"$tag\"')";
+                }, $tags));
+                return $city->attractions()->whereRaw($condition)->get();
+             });
+
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+    }
+
+
+
+    public function getAttractions(Request $request, $id)
+    {
+        try {
+            $city = Cache::remember("city_$id", 10, function () use ($id) {
+                return City::find($id);
+            });
+            if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
+            $attractions = Cache::remember("attractions_attractions_city_{$id}", 10, function() use ($city){
+                $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735", "4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8");
+                $condition = implode(" OR ", array_map(function($tag) {
+                    return "NOT JSON_CONTAINS(tags, '\"$tag\"')";
+                }, $tags));
+                 return $city->attractions()->whereRaw($condition)->get();
+             });
+
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+    }
+
+
     /**
      * Get attraction details
      *

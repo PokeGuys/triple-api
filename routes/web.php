@@ -29,6 +29,10 @@ $api->version('v1', [
     });
     $api->group(['prefix' => 'city'], function($api) {
         $api->get('/{id}/attractions', 'AttractionController@getRows');
+        $api->get('/{id}/attractions/all', 'AttractionController@getAllAttractions');
+        $api->get('/{id}/attractions/hotels', 'AttractionController@getHotels');
+        $api->get('/{id}/attractions/restaurants', 'AttractionController@getRestaurants');
+        $api->get('/{id}/attractions/attractions', 'AttractionController@getAttractions');
     });
     $api->group(['prefix' => 'attraction'], function($api) {
         $api->get('/{id}', 'AttractionController@getInfo');
