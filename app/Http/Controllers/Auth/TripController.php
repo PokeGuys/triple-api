@@ -155,14 +155,12 @@ class TripController extends Controller
             DB::beginTransaction();
             $user = Auth::getUser();
             $city = City::find($request->city_id);
-            $trip = Auth::User()->trips()->create([
+            $trip = $user->trips()->create([
                 'title' => $request->title,
                 'city_id' => $city->id,
                 'visit_date' => $request->visit_date,
                 'visit_length' => $request->visit_length
             ]);
-            Cache::forget("trips_user_{$user->id}");
-            Cache::put("trip_{$trip->id}_user_{$user->id}", $trip, 10);
             $visit_date = Carbon::parse($request->visit_date);
             $itinerary = [];
             for ($i = 0; $i < $request->visit_length; $i++) {
@@ -176,6 +174,8 @@ class TripController extends Controller
                 $this->generateItinerary($city, $itinerary_item);
             }
             DB::commit();
+            Cache::put("trips_user_{$user->id}", $user->trips, 10);
+            Cache::put("trip_{$trip->id}_user_{$user->id}", $trip, 10);
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
@@ -252,7 +252,7 @@ class TripController extends Controller
             $user = Auth::User();
             if (!$trip = $user->trips()->find($id)) throw new NotFoundHttpException(trans('notfound.trip'));
             $trip->delete();
-            Cache::forget("trips_user_{$user->id}");
+            Cache::put("trips_user_{$user->id}", $user->trips, 10);
             Cache::forget("trip_{$id}_user_{$user->id}");
         } catch (\PDOException $e) {
             Log::error($e);
