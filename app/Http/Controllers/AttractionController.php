@@ -101,7 +101,7 @@ class AttractionController extends Controller
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
             $attractions = Cache::remember("attractions_restaurants_city_{$id}", 10, function() use ($city){
-                $tags = array("4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8");
+                $tags = array("4bf58dd8d48988d1c4941735", "52e81612bcbc57f1066b79f8");
                 $condition = implode(" OR ", array_map(function($tag) {
                     return "JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));
