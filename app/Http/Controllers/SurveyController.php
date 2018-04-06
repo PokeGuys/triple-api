@@ -95,7 +95,7 @@ class SurveyController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans($e));
         }
-        return new RedirectResponse('https://john0406.github.io/thankyou');
+        return new RedirectResponse('https://lokhay00.github.io/thankyou');
     }
 
     /**
