@@ -11,7 +11,9 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 use Maatwebsite\Excel\ExcelServiceProvider;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Dingo\Api\Exception\StoreResourceFailedException;
@@ -86,14 +88,14 @@ class SurveyController extends Controller
                   'peace_and_quiet_seeker'  => $request->peace_and_quiet_seeker
                 )
             );
-            
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans($e));
         }
-        return $this->response->created();
+        return new RedirectResponse('https://john0406.github.io/thankyou');
     }
 
     /**
