@@ -23,8 +23,8 @@ class AttractionComment extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function images()
-    {
-        return $this->hasMany(AttractionImage::class, 'comment_id', 'id');
-    }
+    // public function images()
+    // {
+    //     return $this->hasMany(AttractionImage::class, 'comment_id', 'id');
+    // }
 }

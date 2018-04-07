@@ -8,6 +8,7 @@ use App\Models\Attraction;
 use App\Models\AttractionComment;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Transformers\AttractionCommentTransformer;
 use Carbon\Carbon;
 use Dingo\Api\Routing\Helpers;
 use Dingo\Api\Exception\StoreResourceFailedException;
@@ -55,5 +56,16 @@ class AttractionCommentController extends Controller
             throw new ServiceUnavailableHttpException('', trans($e));
         }
         return $this->response->created();
+    }
+
+    public function getComment($id)
+    {
+        try {
+            $attraction_comments = AttractionComment::where('attraction_id', '=', $id)->get();
+        } catch (\PDOException $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->item($attraction_comments, new AttractionCommentTransformer(['include' => 'user']));
     }
 }
