@@ -32,6 +32,9 @@ $api->version('v1', [
     });
     $api->group(['prefix' => 'attraction'], function($api) {
         $api->get('/{id}', 'AttractionController@getInfo');
+
+        $api->post('/comment', 'AttractionCommentController@addComment');
+        
     });
     $api->group(['prefix' => 'survey'], function($api) {
         $api->post('/', 'SurveyController@input');
