@@ -45,7 +45,7 @@ class AttractionController extends Controller
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->paginator($attractions->paginate($limit), new AttractionTransformer, ['key' => 'data']);
+        return $this->response->paginator($attractions->paginate($limit), new AttractionTransformer, ['key' => 'attractions']);
     }
 
 
@@ -76,12 +76,12 @@ class AttractionController extends Controller
                 return City::find($id);
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
-            $attractions = Cache::remember("attractions_hotels_city_{$id}", 10, function() use ($city){
+            $attractions = Cache::remember("attractions_hotels_city_{$id}", 10, function() use ($city, $id){
                 $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735");
                 $condition = implode(" OR ", array_map(function($tag) {
                     return "JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));
-                return $city->attractions()->whereRaw($condition)->get();
+                return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
              });
 
         } catch (\PDOException $e) {
@@ -100,12 +100,12 @@ class AttractionController extends Controller
                 return City::find($id);
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
-            $attractions = Cache::remember("attractions_restaurants_city_{$id}", 10, function() use ($city){
+            $attractions = Cache::remember("attractions_restaurants_city_{$id}", 10, function() use ($city, $id){
                 $tags = array("4bf58dd8d48988d1c4941735", "52e81612bcbc57f1066b79f8");
                 $condition = implode(" OR ", array_map(function($tag) {
                     return "JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));
-                return $city->attractions()->whereRaw($condition)->get();
+                return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
              });
 
         } catch (\PDOException $e) {
@@ -123,12 +123,12 @@ class AttractionController extends Controller
                 return City::find($id);
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
-            $attractions = Cache::remember("attractions_attractions_city_{$id}", 10, function() use ($city){
+            $attractions = Cache::remember("attractions_attractions_city_{$id}", 10, function() use ($city, $id){
                 $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735", "4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8");
-                $condition = implode(" OR ", array_map(function($tag) {
+                $condition = implode(" AND ", array_map(function($tag) {
                     return "NOT JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));
-                 return $city->attractions()->whereRaw($condition)->get();
+                 return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
              });
 
         } catch (\PDOException $e) {
