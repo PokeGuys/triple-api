@@ -32,14 +32,6 @@ $api->version('v1', [
     });
     $api->group(['prefix' => 'attraction'], function($api) {
         $api->get('/{id}', 'AttractionController@getInfo');
-
-        $api->post('/comment', 'AttractionCommentController@addComment');
-        $api->get('/comment/{id}', 'AttractionCommentController@getComment');
-
-    });
-    $api->group(['prefix' => 'survey'], function($api) {
-        $api->post('/', 'SurveyController@input');
-        $api->get('/generate', 'SurveyController@export');
     });
 
     // Auth Required
@@ -71,6 +63,9 @@ $api->version('v1', [
             $api->put('/{id}', 'Auth\TripController@editItineraryItem');
             $api->delete('/{id}', 'Auth\TripController@deleteItineraryItem');
         });
-
+        $api->group(['prefix' => 'survey'], function($api) {
+            $api->post('/', 'SurveyController@input');
+            $api->get('/', 'SurveyController@export');
+        });
     });
 });
