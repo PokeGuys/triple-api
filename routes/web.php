@@ -54,15 +54,16 @@ $api->version('v1', [
             $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
         });
         $api->group(['prefix' => 'trip'], function($api) {
-            $api->get('/{id}/article', 'Auth\TripController@generateArticle');
-            $api->get('/bookmarks', 'Auth\TripController@getBookmarks');
-            $api->post('/{id}/bookmark', 'Auth\TripController@setBookmark');
             $api->get('/', 'Auth\TripController@listTrip');
+            $api->get('/ended', 'Auth\TripController@listEndedTrip');
             $api->get('/{id}', 'Auth\TripController@listTripByUser');
             $api->get('/search/{keyword}', 'Auth\TripController@listTripByKeyword');
             $api->post('/', 'Auth\TripController@createTrip');
             $api->put('/{id}', 'Auth\TripController@editTrip');
             $api->delete('/{id}', 'Auth\TripController@deleteTrip');
+            $api->get('/{id}/article', 'Auth\TripController@generateArticle');
+            $api->get('/bookmarks', 'Auth\TripController@getBookmarks');
+            $api->post('/{id}/bookmark', 'Auth\TripController@setBookmark');
         });
         $api->group(['prefix' => 'itinerary'], function($api) {
             $api->post('/{id}', 'Auth\TripController@assignItineraryItem');

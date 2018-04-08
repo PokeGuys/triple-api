@@ -49,7 +49,20 @@ class TripController extends Controller
         try {
             $user = Auth::getUser();
             $trips = Cache::remember("trips_user_{$user->id}", 10, function() use ($user) {
-                return $user->trips()->orderBy('updated_at', 'desc')->get();
+                return $user->trips()->where('visit_date', '>=', Carbon::now())->orderBy('visit_date', 'desc')->get();
+            });
+        } catch (\PDOException $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->collection($trips, new TripTransformer(['include' => 'city']));
+    }
+
+    public function listEndedTrip() {
+        try {
+            $user = Auth::getUser();
+            $trips = Cache::remember("trips_user_{$user->id}_ended", 10, function() use ($user) {
+                return $user->trips()->where('visit_date', '<', Carbon::now())->orderBy('visit_date', 'desc')->get();
             });
         } catch (\PDOException $e) {
             Log::error($e);
