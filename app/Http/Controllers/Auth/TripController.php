@@ -49,7 +49,9 @@ class TripController extends Controller
         try {
             $user = Auth::getUser();
             $trips = Cache::remember("trips_user_{$user->id}", 10, function() use ($user) {
-                return $user->trips()->where('visit_date', '>=', Carbon::now())->orderBy('visit_date', 'desc')->get();
+                return $user->trips()->orderBy('visit_date', 'desc')->get()->filter(function ($item) {
+                    return $item->visit_date >= Carbon::now()->subDays($item->visit_length);
+                });
             });
         } catch (\PDOException $e) {
             Log::error($e);
@@ -62,7 +64,9 @@ class TripController extends Controller
         try {
             $user = Auth::getUser();
             $trips = Cache::remember("trips_user_{$user->id}_ended", 10, function() use ($user) {
-                return $user->trips()->where('visit_date', '<', Carbon::now())->orderBy('visit_date', 'desc')->get();
+                return $user->trips()->orderBy('visit_date', 'desc')->get()->filter(function ($item) {
+                    return $item->visit_date < Carbon::now()->subDays($item->visit_length);
+                });
             });
         } catch (\PDOException $e) {
             Log::error($e);
