@@ -58,10 +58,10 @@ class UserController extends Controller
         }
 
         try {
-            $token = Str::random(40);
+            $verifyToken = Str::random(40);
             DB::beginTransaction();
             // Sending Verification mail
-            // Mail::to($request->email)->queue(new VerificationMail($token));
+            // Mail::to($request->email)->queue(new VerificationMail($verifyToken));
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
@@ -75,15 +75,16 @@ class UserController extends Controller
             ]);
 
             $user->verification()->create([
-                'token' => $token
+                'token' => $verifyToken
             ]);
+            $token = Auth::tokenById($user->id);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->created();
+        return $this->response->array(compact('token', 'user'))->setStatusCode(201);
     }
 
     /**
