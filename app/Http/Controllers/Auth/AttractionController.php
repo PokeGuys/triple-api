@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Auth;
 use Auth;
 use Cache;
 use Log;
+use Validator;
 use App\Models\City;
 use App\Models\Attraction;
+use App\Models\AttractionComment;
 use App\Transformers\AttractionTransformer;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -74,7 +77,7 @@ class AttractionController extends Controller
         }
         try {
             DB::beginTransaction();
-            
+
             $attraction = Cache::remember("attraction_$id", 60, function() use ($id) {
                 return Attraction::find($id);
             });
@@ -82,12 +85,22 @@ class AttractionController extends Controller
                 throw new NotFoundHttpException(trans('notfound.attracion'));
             }
             $user = Auth::getUser();
-            $attraction->reviews()->create([
-                'user_id' => $user->id,
-                'title' => $request->title,
-                'message' => $request->message,
-                'rating' => $request->rating,
-            ]);
+            // $attraction->reviews()->create([
+            //     'user_id' => $user->id,
+            //     'title' => $request->title,
+            //     'message' => $request->message,
+            //     'rating' => $request->rating,
+            // ]);
+            $attraction_comment = DB::table('attraction_comments')->insert(
+                array(
+                    'attraction_id' => $id,
+                    'user_id' => $user->id,
+                    'title' => $request->title,
+                    'content' => $request->message,
+                    'rating' => $request->rating,
+                    'photos' => '[]'
+                )
+            );
             $newRating = $attraction->rating + (($request->rating - $attraction->rating) / ($attraction->rating_count + 1));
             $attraction->increment('comment_count');
             $attraction->increment('rating_count');
@@ -101,6 +114,6 @@ class AttractionController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($trip, new TripTransformer(['include' => ['city', 'collaborators', 'itinerary']]));
+        return $this->response->created();
     }
 }
