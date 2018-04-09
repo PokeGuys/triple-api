@@ -80,7 +80,7 @@ class UserController extends Controller
             $output = $process->getOutput();
             $preferences = json_decode($output, true);
             $user->tags()->detach();
-            for ($i = 0; $i <= 5; $i++) {
+            for ($i = 0; $i < 4; $i++) {
                 $tag = Tag::where('tag', $preferences[$i]['key'])->first();
                 $user->tags()->syncWithoutDetaching(['tag_id' => $tag->id]);
             }
