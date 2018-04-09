@@ -4,6 +4,7 @@ import json
 import keras
 import numpy as np
 import pandas as pd
+from keras.preprocessing import sequence
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
@@ -33,13 +34,11 @@ def preprocess(dataset):
     X[:, 0] = LabelEncoder().fit_transform(X[:, 0])
     # encode gender
     X[:, 1] = LabelEncoder().fit_transform(X[:, 1])
-    # encode country
-    # X[:, 2] = LabelEncoder().fit_transform(X[:, 2])
 
     # dummy variables (binary one-hot encoding)
     enc = hot_encode(X)
     X = enc.transform(X).toarray()
-
+    X = X[:, 1:]
     return X,y,enc
 
 
@@ -52,6 +51,7 @@ def predict(age, gender):
     dataset = readfile(datasetPath)
     X, y, enc = preprocess(dataset)
     data = enc.transform(np.array([[age, gender]])).toarray()
+    data = data[:, 1:]
 
     # preprocessing new observation
     # scale new observation
@@ -68,6 +68,6 @@ def predict(age, gender):
 
 
 if __name__ == '__main__':
-    age = sys.argv[1]
+    age = int(sys.argv[1]) - 1
     gender = 0 if sys.argv[2] == 'F' else 1
     predict(age, gender)
