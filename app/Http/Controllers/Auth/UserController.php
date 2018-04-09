@@ -6,6 +6,7 @@ use Auth;
 use Log;
 use Validator;
 use Carbon\Carbon;
+use App\Models\Tag;
 use App\Transformers\UserTransformer;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
@@ -77,11 +78,17 @@ class UserController extends Controller
                 throw new ProcessFailedException($process);
             }
             $output = $process->getOutput();
+            $preferences = json_decode($output, true);
+            $user->tags()->detach();
+            for ($i = 0; $i <= 5; $i++) {
+                $tag = Tag::where('tag', $preferences[$i]['key'])->first();
+                $user->tags()->syncWithoutDetaching(['tag_id' => $tag->id]);
+            }
         } catch (\Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->array(json_decode($output, true));
+        return $this->response->array($preferences);
     }
 
     public function updatePassword(Request $request) {
