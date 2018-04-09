@@ -91,16 +91,14 @@ class AttractionController extends Controller
             //     'message' => $request->message,
             //     'rating' => $request->rating,
             // ]);
-            $attraction_comment = DB::table('attraction_comments')->insert(
-                array(
-                    'attraction_id' => $id,
-                    'user_id' => $user->id,
-                    'title' => $request->title,
-                    'content' => $request->message,
-                    'rating' => $request->rating,
-                    'photos' => '[]'
-                )
-            );
+            AttractionComment::create([
+              'attraction_id' => $id,
+              'user_id' => $user->id,
+              'title' => $request->title,
+              'content' => $request->message,
+              'rating' => $request->rating,
+              'photos' => []
+            ]);
             $newRating = $attraction->rating + (($request->rating - $attraction->rating) / ($attraction->rating_count + 1));
             $attraction->increment('comment_count');
             $attraction->increment('rating_count');

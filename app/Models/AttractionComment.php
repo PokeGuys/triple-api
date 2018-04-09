@@ -10,7 +10,7 @@ class AttractionComment extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['rating', 'title', 'content', 'photos'];
+    protected $fillable = ['attraction_id', 'user_id', 'rating', 'title', 'content', 'photos'];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
     protected $casts = [
         'photos' => 'array',
