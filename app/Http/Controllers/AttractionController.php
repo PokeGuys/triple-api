@@ -101,7 +101,7 @@ class AttractionController extends Controller
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
             $attractions = Cache::remember("attractions_restaurants_city_{$id}", 10, function() use ($city, $id){
-                $tags = array("4bf58dd8d48988d1c4941735", "52e81612bcbc57f1066b79f8");
+                $tags = array("4bf58dd8d48988d1c4941735", "52e81612bcbc57f1066b79f8", "4bf58dd8d48988d1c7941735", "58daa1558bbb0b01f18ec1d3", "4bf58dd8d48988d16d941735", "4bf58dd8d48988d1e0931735");
                 $condition = implode(" OR ", array_map(function($tag) {
                     return "JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));
@@ -124,7 +124,7 @@ class AttractionController extends Controller
             });
             if (!$city) throw new NotFoundHttpException(trnas('notfound.city'));
             $attractions = Cache::remember("attractions_attractions_city_{$id}", 10, function() use ($city, $id){
-                $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735", "4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8");
+                $tags = array("4bf58dd8d48988d1fa931735", "4bf58dd8d48988d1ee931735", "4bf58dd8d48988d1fb931735", "4bf58dd8d48988d12f951735", "4bf58dd8d48988d1fa931735", "52e81612bcbc57f1066b79f8", "4bf58dd8d48988d1c7941735", "58daa1558bbb0b01f18ec1d3", "4bf58dd8d48988d16d941735", "5109983191d435c0d71c2bb1", "4bf58dd8d48988d1e0931735");
                 $condition = implode(" AND ", array_map(function($tag) {
                     return "NOT JSON_CONTAINS(tags, '\"$tag\"')";
                 }, $tags));

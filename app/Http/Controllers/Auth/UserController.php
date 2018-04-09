@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Auth;
 use Auth;
 use Log;
 use Validator;
+use Carbon\Carbon;
 use App\Transformers\UserTransformer;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -32,24 +34,31 @@ class UserController extends Controller
     }
 
     public function updateInfo(Request $request) {
-        $info = $request->only('first_name', 'last_name', 'gender', 'income', 'age');
+        $info = $request->only('first_name', 'last_name', 'gender', 'age');
         $validator = Validator::make($info, [
             'first_name' => 'max:255',
             'last_name' => 'max:255',
             'gender' => 'in:M,F',
-            'income' => 'exists:income_groups,id',
+            //'income' => 'exists:income_groups,id',
             'age' => 'exists:age_groups,id',
         ]);
         if ($validator->fails()) {
             throw new StoreResourceFailedException($validator->errors()->first());
         }
         try {
+            DB::beginTransaction();
             $user = Auth::User();
+            $fill = [];
             foreach ($info as $key => $value) {
-                if (empty($user->{$key})) $fill[$key] = $value;
+                $fill[$key] = $value;
             }
             $user->fill($fill)->save();
+            $user->forceFill([
+                'updated_at' => Carbon::now()
+            ])->save();
+            DB::commit();
         } catch (\PDOException $e) {
+            DB::rollback();
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
