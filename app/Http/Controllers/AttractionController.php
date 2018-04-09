@@ -15,6 +15,8 @@ use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 /**
  * @Resource("Attraction", uri="/attraction")
@@ -52,6 +54,9 @@ class AttractionController extends Controller
 
     public function getAllAttractions(Request $request, $id)
     {
+        $currentPage = $request->page ?? 0;
+        $perPage = $request->limit ?? 10;
+
         try {
             $city = Cache::remember("city_$id", 60, function () use ($id) {
                 return City::find($id);
@@ -61,16 +66,24 @@ class AttractionController extends Controller
                  return $city->attractions;
              });
 
+         $collection = new Collection($attractions);
+         $currentPageBlogResults = $collection->slice($currentPage * $perPage, $perPage)->all();
+         $paginatedBlogResults= new LengthAwarePaginator($currentPageBlogResults, count($collection), $perPage);
+
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($attractions, new AttractionTransformer , ['key' => 'data']);
+        //return $this->response->item($attractions, new AttractionTransformer , ['key' => 'data']);
+        return $this->response->paginator($paginatedBlogResults, new AttractionTransformer, ['key' => 'attractions']);
     }
 
 
 
     public function getHotels(Request $request, $id)
     {
+        $currentPage = $request->page ?? 0;
+        $perPage = $request->limit ?? 10;
+
         try {
             $city = Cache::remember("city_$id", 10, function () use ($id) {
                 return City::find($id);
@@ -83,17 +96,21 @@ class AttractionController extends Controller
                 }, $tags));
                 return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
              });
-
+             $collection = new Collection($attractions);
+             $currentPageBlogResults = $collection->slice($currentPage * $perPage, $perPage)->all();
+             $paginatedBlogResults= new LengthAwarePaginator($currentPageBlogResults, count($collection), $perPage);
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+        return $this->response->paginator($paginatedBlogResults, new AttractionTransformer, ['key' => 'attractions']);
     }
 
 
 
     public function getRestaurants(Request $request, $id)
     {
+        $currentPage = $request->page ?? 0;
+        $perPage = $request->limit ?? 10;
 
         try {
             $city = Cache::remember("city_$id", 10, function () use ($id) {
@@ -108,10 +125,14 @@ class AttractionController extends Controller
                 return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
              });
 
+             $collection = new Collection($attractions);
+             $currentPageBlogResults = $collection->slice($currentPage * $perPage, $perPage)->all();
+             $paginatedBlogResults= new LengthAwarePaginator($currentPageBlogResults, count($collection), $perPage);
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+        //return $this->response->item($attractions, new AttractionTransformer, ['key' => 'data']);
+        return $this->response->paginator($paginatedBlogResults, new AttractionTransformer, ['key' => 'attractions']);
     }
 
 
