@@ -37,6 +37,9 @@ $api->version('v1', [
     $api->group(['prefix' => 'attraction'], function($api) {
         $api->get('/{id}', 'AttractionController@getInfo');
     });
+    $api->group(['prefix' => 'survey'], function($api) {
+        $api->post('/', 'SurveyController@input');
+    });
 
     // Auth Required
     $api->group(['middleware' => 'auth:api'], function($api) {
@@ -71,7 +74,6 @@ $api->version('v1', [
             $api->delete('/{id}', 'Auth\TripController@deleteItineraryItem');
         });
         $api->group(['prefix' => 'survey'], function($api) {
-            $api->post('/', 'SurveyController@input');
             $api->get('/', 'SurveyController@export');
         });
     });
