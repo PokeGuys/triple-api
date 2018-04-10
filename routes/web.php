@@ -55,6 +55,7 @@ $api->version('v1', [
         $api->group(['prefix' => 'attraction'], function($api) {
             $api->post('/{id}/review', 'Auth\AttractionController@placeReview');
             $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
+            $api->get('/preference', 'Auth\AttractionController@getAttractionsByPreference');
         });
         $api->group(['prefix' => 'trip'], function($api) {
             $api->get('/', 'Auth\TripController@listTrip');

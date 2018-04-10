@@ -114,4 +114,29 @@ class AttractionController extends Controller
         }
         return $this->response->created();
     }
+
+    public function getAttractionsByPreference(Request $request){
+        $id = $request->id;
+        try{
+            $city = Cache::remember("city_$id", 10, function () use ($id) {
+                return City::find($id);
+            });
+            if (!$city) throw new NotFoundHttpException(trans('notfound.city'));
+            $attractions = Cache::remember("preference_attractions_city_{$id}", 10, function() use ($city, $id){
+                $preferences = Auth::User()->tags;
+                $tags = [];
+                foreach ($preferences as $value) {
+                    $tags = array_merge($tags,$value['attraction_tags']);
+                }
+                $condition = implode(" OR ", array_map(function($tag) {
+                    return " JSON_CONTAINS(tags, '\"$tag\"')";
+                }, $tags));
+                 return $city->attractions()->whereRaw("(".$condition.") AND city_id = ".$id)->get();
+             });
+        } catch (\Exception $e) {
+            Log::error($e);
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
+        return $this->response->paginator($attractions->paginate(5), new AttractionTransformer, ['key' => 'attractions']);;
+    }
 }
