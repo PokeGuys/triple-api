@@ -69,7 +69,7 @@ class AttractionController extends Controller
         $validator = Validator::make($request->all(), [
             'title'   => 'required|min:1|max:255',
             'message' => 'required|min:1',
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:10',
         ]);
 
         if ($validator->fails()) {
