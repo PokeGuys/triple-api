@@ -91,7 +91,7 @@ class AttractionController extends Controller
             //     'message' => $request->message,
             //     'rating' => $request->rating,
             // ]);
-            AttractionComment::create([
+            $attraction->comments()->create([
               'attraction_id' => $id,
               'user_id' => $user->id,
               'title' => $request->title,
@@ -105,8 +105,8 @@ class AttractionController extends Controller
             $attraction->forceFill([
                 'rating' => $newRating,
             ])->save();
-
             DB::commit();
+            Cache::put("attraction_comment_by_attracion_$id", $attraction->comments, 60);
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
