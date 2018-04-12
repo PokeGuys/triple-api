@@ -1,4 +1,5 @@
 # How to use
-1. Run `php artisan jwt:secret`
-2. Configure `.env` file
-3. Run `php artisan serve`
+1. composer install
+2. cp .env.example .env
+3. php artisan key:generate
+4. php artisan jwt:secret
