@@ -115,8 +115,7 @@ class AttractionController extends Controller
         return $this->response->created();
     }
 
-    public function getAttractionsByPreference(Request $request){
-        $id = $request->id;
+    public function getAttractionsByPreference(Request $request, $id){
         try{
             $city = Cache::remember("city_$id", 10, function () use ($id) {
                 return City::find($id);

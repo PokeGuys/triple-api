@@ -45,6 +45,7 @@ $api->version('v1', [
     $api->group(['middleware' => 'auth:api'], function($api) {
         $api->group(['prefix' => 'city'], function($api) {
             $api->get('/{id}/attraction/bookmarks', 'Auth\AttractionController@getBookmarks');
+            $api->get('/{id}/attractions/preference', 'Auth\AttractionController@getAttractionsByPreference');
         });
         $api->group(['prefix' => 'member'], function($api) {
             $api->get('/preference', 'Auth\UserController@generatePreference');
@@ -55,7 +56,6 @@ $api->version('v1', [
         $api->group(['prefix' => 'attraction'], function($api) {
             $api->post('/{id}/review', 'Auth\AttractionController@placeReview');
             $api->post('/{id}/bookmark', 'Auth\AttractionController@setBookmark');
-            $api->get('/preference', 'Auth\AttractionController@getAttractionsByPreference');
         });
         $api->group(['prefix' => 'trip'], function($api) {
             $api->get('/', 'Auth\TripController@listTrip');
