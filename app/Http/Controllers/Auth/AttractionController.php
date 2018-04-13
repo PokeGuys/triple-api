@@ -107,6 +107,7 @@ class AttractionController extends Controller
             ])->save();
             DB::commit();
             Cache::put("attraction_comment_by_attracion_$id", $attraction->comments, 60);
+            Cache::put("attraction_$id", $attraction, 60);
         } catch (\Exception $e) {
             DB::rollback();
             Log::error($e);
