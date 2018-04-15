@@ -179,7 +179,6 @@ class UserController extends Controller
           'token' => 'required',
           'username' => 'required|min:6|max:20',
           'password' => 'required|min:6|confirmed',
-          //'recaptcha' => 'required|recaptcha'
         ]);
         try {
             if ($validator->fails()) {
