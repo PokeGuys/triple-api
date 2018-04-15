@@ -61,7 +61,7 @@ class UserController extends Controller
             $verifyToken = Str::random(40);
             DB::beginTransaction();
             // Sending Verification mail
-            // Mail::to($request->email)->queue(new VerificationMail($verifyToken));
+            Mail::to($request->email)->queue(new VerificationMail($verifyToken));
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
@@ -78,6 +78,7 @@ class UserController extends Controller
                 'token' => $verifyToken
             ]);
             $token = Auth::tokenById($user->id);
+            $user = (new UserTransformer(['include' => 'preferences']))->transform($user);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -117,7 +118,7 @@ class UserController extends Controller
             $user->forceFill([
                 'last_login_at' => Carbon::now()
             ])->save();
-            $user = (new UserTransformer)->transform($user);
+            $user = (new UserTransformer(['include' => 'preferences']))->transform($user);
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -154,7 +155,7 @@ class UserController extends Controller
                     throw new UnprocessableEntityHttpException(trans('custom.limit'));
                 }
             }
-            // Mail::to($request->email, new ForgetPasswordMail($token));
+            Mail::to($request->email, new ForgetPasswordMail($token));
             PasswordReset::updateOrCreate([
                 'user_id' => $member->id,
             ],[

@@ -38,12 +38,12 @@ class VerificationMail extends Mailable implements ShouldQueue
     public function build()
     {
         URL::forceRootUrl(Config::get('app.url'));
-        return $this->view('verify')
+        return $this->view('mail')
             ->subject('[Triple] 驗證您的電子郵件地址')
             ->with([
                 'introLines' => array('請點擊以下連結即可完成帳號認證： '),
-                'actionText' => secure_url('confirm', $this->token),
-                'actionUrl' => secure_url('confirm', $this->token),
+                'actionText' => url('member/confirm', $this->token),
+                'actionUrl' => url('member/confirm', $this->token),
                 'outroLines' => array('基於安全性考量，認證有效時間為送出認證信開始的24小時內。', '逾時請重新申請認證信。', '如果你沒有申請帳戶，請無視此通知 '),
             ]);
     }
