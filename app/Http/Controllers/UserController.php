@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use League\Fractal\Resource\Item;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
@@ -78,7 +79,7 @@ class UserController extends Controller
                 'token' => $verifyToken
             ]);
             $token = Auth::tokenById($user->id);
-            $user = (new UserTransformer(['include' => 'preferences']))->transform($user);
+            $user = new Item($user, new UserTransformer(['include' => 'preferences']));
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -118,7 +119,7 @@ class UserController extends Controller
             $user->forceFill([
                 'last_login_at' => Carbon::now()
             ])->save();
-            $user = (new UserTransformer(['include' => 'preferences']))->transform($user);
+            $user = new Item($user, new UserTransformer(['include' => 'preferences']));
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
