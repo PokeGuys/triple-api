@@ -138,20 +138,28 @@ class UserController extends Controller
      */
     public function forgetPassword(Request $request) {
         $validator = Validator::make($request->all(), [
-          'username' => 'required|min:6|max:20',
-          'email' => 'required|email|max:255',
+            'username' => 'required|min:6|max:20',
+            'email' => 'required|email|max:255',
         ]);
-        if ($validator->fails()) throw new UnprocessableEntityHttpException($validator->errors()->first());
+        if ($validator->fails()) {
+            throw new UnprocessableEntityHttpException($validator->errors()->first());
+        }
         try {
-            if (!$member = Member::where('username', $request->username)->where('email', $request->email)->first())
-                throw new NotFoundHttpException(trans('custom.notfound.member'));
-            if ($forget = $member->passwordReset) {
-                if (Carbon::now()->diffInMinutes($forget->updated_at) < 15)
-                    throw new UnprocessableEntityHttpException(trans('custom.limit'));
-            }
             $token = Str::random(40);
-            Mail::to($request->email, new ForgetPasswordMail($token));
-            $forget->forceFill(['token' => $token])->save();
+            if (!$member = User::where('username', $request->username)->where('email', $request->email)->first()) {
+                throw new NotFoundHttpException(trans('custom.notfound.member'));
+            }
+            if ($forget = $member->passwordReset) {
+                if (Carbon::now()->diffInMinutes($forget->updated_at) < 15) {
+                    throw new UnprocessableEntityHttpException(trans('custom.limit'));
+                }
+            }
+            // Mail::to($request->email, new ForgetPasswordMail($token));
+            PasswordReset::updateOrCreate([
+                'user_id' => $member->id,
+            ],[
+                'token' => $token
+            ]);
         } catch (\PDOException $e) {
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }

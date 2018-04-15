@@ -21,6 +21,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Verification::class);
     }
 
+    public function passwordReset()
+    {
+        return $this->hasOne(PasswordReset::class);
+    }
+
     public function trips()
     {
         return $this->hasMany(Trip::class);

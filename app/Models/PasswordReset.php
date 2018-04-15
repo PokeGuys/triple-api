@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PasswordReset extends Model
 {
     protected $dateFormat = 'U';
-    protected $fillable = ['token'];
+    protected $fillable = ['user_id', 'token'];
     protected $dates = ['created_at', 'updated_at'];
 
     /**
