@@ -175,6 +175,27 @@ class UserController extends Controller
      * @Response(201)
      */
     public function resetPassword(Request $request) {
-        throw new ServiceUnavailableHttpException('', trans('custom.implementation'));
+        $validator = Validator::make($request->all(), [
+          'token' => 'required',
+          'username' => 'required|min:6|max:20',
+          'password' => 'required|min:6|confirmed',
+          //'recaptcha' => 'required|recaptcha'
+        ]);
+        try {
+            if ($validator->fails()) {
+                throw new UnprocessableEntityHttpException($validator->errors()->first());
+            }
+            $forget = PasswordReset::where('token', $request->token)->first();
+            if (!$forget) throw new NotFoundHttpException(trans('custom.notfound.token'));
+            if (Carbon::now()->diffInHours($forget->updated_at) > 24) throw new UnprocessableEntityHttpException(trans('custom.invalid.token'));
+            $member = User::where('username', $request->username)->first();
+            if ($member->username !== $request->username) throw new NotFoundHttpException(trans('custom.notfound.member'));
+            $member->forceFill([
+                'password' => bcrypt($request->password)
+            ])->save();
+            $forget->delete();
+        } catch (\PDOException $e) {
+            throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
+        }
     }
 }
