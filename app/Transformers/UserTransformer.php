@@ -7,6 +7,8 @@ use Cache;
 
 class UserTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['preferences'];
+
     public function __construct($fields = null)
     {
         $this->fields = $fields;
