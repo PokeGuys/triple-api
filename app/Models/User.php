@@ -51,6 +51,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Attraction::class, 'visited_places');
     }
 
+    public function isAdmin()
+    {
+        return $this->status === 99;
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();

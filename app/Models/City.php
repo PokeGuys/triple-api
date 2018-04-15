@@ -10,7 +10,7 @@ class City extends Model
     use SoftDeletes;
 
     protected $dateFormat = 'U';
-    protected $fillable = ['name', 'photo_url'];
+    protected $fillable = ['name', 'latitude', 'longitude', 'photo_url', 'timezone', 'description', ];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
     public function country()

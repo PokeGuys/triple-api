@@ -43,6 +43,11 @@ $api->version('v1', [
 
     // Auth Required
     $api->group(['middleware' => 'auth:api'], function($api) {
+        $api->group(['middleware' => 'admin'], function($api) {
+            $api->group(['prefix' => 'city'], function($api) {
+                $api->post('/', 'Admin\CityController@create');
+            });
+        });
         $api->group(['prefix' => 'city'], function($api) {
             $api->get('/{id}/attraction/bookmarks', 'Auth\AttractionController@getBookmarks');
             $api->get('/{id}/attractions/preference', 'Auth\AttractionController@getAttractionsByPreference');
