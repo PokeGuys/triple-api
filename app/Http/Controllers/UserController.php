@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use League\Fractal\Manager;
 use League\Fractal\Resource\Item;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -79,7 +80,10 @@ class UserController extends Controller
                 'token' => $verifyToken
             ]);
             $token = Auth::tokenById($user->id);
+            $fractal = new Manager();
+            $fractal->setSerializer(new \App\Http\Serializers\NoDataArraySerializer());
             $user = new Item($user, new UserTransformer(['include' => 'preferences']));
+            $user = $fractal->createData($user)->toArray();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -119,7 +123,10 @@ class UserController extends Controller
             $user->forceFill([
                 'last_login_at' => Carbon::now()
             ])->save();
+            $fractal = new Manager();
+            $fractal->setSerializer(new \App\Http\Serializers\NoDataArraySerializer());
             $user = new Item($user, new UserTransformer(['include' => 'preferences']));
+            $user = $fractal->createData($user)->toArray();
         } catch (\PDOException $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));

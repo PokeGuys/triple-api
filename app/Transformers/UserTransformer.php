@@ -32,7 +32,7 @@ class UserTransformer extends TransformerAbstract
         ]);
     }
 
-    public function includePreferences(User $user)
+    public function includepreferences(User $user)
     {
         $tags = Cache::remember("preference_user_{$user->id}", 60, function() use ($user) {
             return $user->tags;
