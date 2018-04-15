@@ -3,9 +3,12 @@
 namespace App\Transformers;
 
 use App\Models\User;
+use Cache;
 
 class UserTransformer extends TransformerAbstract
 {
+    protected $availableIncludes = ['preferences'];
+
     public function __construct($fields = null)
     {
         $this->fields = $fields;
@@ -27,5 +30,18 @@ class UserTransformer extends TransformerAbstract
             'created_at' => strtotime($user->created_at),
             'updated_at' => strtotime($user->updated_at)
         ]);
+    }
+
+    public function includePreferences(User $user)
+    {
+      $tags = Cache::remember("preference_user_{$user->id}", 60, function() use ($user) {
+          return $user->tags;
+      });
+      return $this->collection($tags, new PreferenceTransformer([
+          'only' => [
+              'id',
+              'tag'
+          ]
+      ]));
     }
 }

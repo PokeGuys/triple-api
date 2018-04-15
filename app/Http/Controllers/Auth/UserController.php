@@ -31,7 +31,7 @@ class UserController extends Controller
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
         }
-        return $this->response->item($user, new UserTransformer);
+        return $this->response->item($user, new UserTransformer(['include' => 'preferences']));
     }
 
     public function updateInfo(Request $request) {
