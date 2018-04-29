@@ -28,9 +28,9 @@ class VerifyController extends Controller
     {
         try {
             $verify = Verification::where('token', $token)->first();
-            if (!$verify) throw new UnprocessableEntityHttpException(trans('custom.notfound.token'));
-            if ($this->token_is_expired($verify->updated_at, 24)) throw new UnprocessableEntityHttpException(trans('custom.invalid.token'));
-            if ($verify->user->status !== 0) throw new ConflictHttpException(trans('custom.member.activated'));
+            if (!$verify) throw new UnprocessableEntityHttpException(trans('notfound.token'));
+            if ($this->token_is_expired($verify->updated_at, 24)) throw new UnprocessableEntityHttpException(trans('custom.token'));
+            if ($verify->user->status !== 0) throw new ConflictHttpException(trans('custom.activated'));
             $verify->user->forceFill(['status' => 1])->save();
             $verify->delete();
         } catch (\PDOException $e) {
@@ -49,8 +49,8 @@ class VerifyController extends Controller
         ]);
         try {
             if ($validator->fails()) throw new UnprocessableEntityHttpException($validator->errors()->first());
-            if ($member = !valid_user($request->username, $request->password)) throw new NotFoundHttpException(trans('custom.invalid.password'));
-            if ($member->status !== 0) throw new ConflictHttpException(trans('custom.member.activated'));
+            if ($member = !valid_user($request->username, $request->password)) throw new NotFoundHttpException(trans('auth.failed'));
+            if ($member->status !== 0) throw new ConflictHttpException(trans('custom.activated'));
             if ($this->token_last_request($member->verification()->updated_at, 15)) throw new UnprocessableEntityHttpException(trans('custom.limit'));
             $token = Str::random(40);
             $member->verification()->forceFill([

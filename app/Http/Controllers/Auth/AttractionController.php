@@ -36,9 +36,6 @@ class AttractionController extends Controller
             $attractions = Cache::remember("bookmark_attraction_user_{$user->id}", 20, function() use ($user) {
                 return $user->bookmarkedAttraction;
             })->where('city_id', $id);
-            if (!$attractions) {
-                throw new NotFoundHttpException(trans('notfound.attractions'));
-            }
         } catch (Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
@@ -53,7 +50,7 @@ class AttractionController extends Controller
                     return Attraction::find($id);
                 })
             ) {
-                throw new NotFoundHttpException(trans('notfound.attracion'));
+                throw new NotFoundHttpException(trans('notfound.attraction'));
             }
             $user = Auth::getUser();
             $user->bookmarkedAttraction()->syncWithoutDetaching(['attraction_id' => $id]);
@@ -82,7 +79,7 @@ class AttractionController extends Controller
                 return Attraction::find($id);
             });
             if (!$attraction) {
-                throw new NotFoundHttpException(trans('notfound.attracion'));
+                throw new NotFoundHttpException(trans('notfound.attraction'));
             }
             $user = Auth::getUser();
             // $attraction->reviews()->create([

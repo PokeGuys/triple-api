@@ -156,7 +156,7 @@ class UserController extends Controller
         try {
             $token = Str::random(40);
             if (!$member = User::where('username', $request->username)->where('email', $request->email)->first()) {
-                throw new NotFoundHttpException(trans('custom.notfound.member'));
+                throw new NotFoundHttpException(trans('notfound.member'));
             }
             if ($forget = $member->passwordReset) {
                 if (Carbon::now()->diffInMinutes($forget->updated_at) < 15) {
@@ -194,10 +194,10 @@ class UserController extends Controller
                 throw new UnprocessableEntityHttpException($validator->errors()->first());
             }
             $forget = PasswordReset::where('token', $request->token)->first();
-            if (!$forget) throw new NotFoundHttpException(trans('custom.notfound.token'));
-            if (Carbon::now()->diffInHours($forget->updated_at) > 24) throw new UnprocessableEntityHttpException(trans('custom.invalid.token'));
+            if (!$forget) throw new NotFoundHttpException(trans('notfound.token'));
+            if (Carbon::now()->diffInHours($forget->updated_at) > 24) throw new UnprocessableEntityHttpException(trans('custom.token'));
             $member = User::where('username', $request->username)->first();
-            if ($member->username !== $request->username) throw new NotFoundHttpException(trans('custom.notfound.member'));
+            if ($member->username !== $request->username) throw new NotFoundHttpException(trans('notfound.member'));
             $member->forceFill([
                 'password' => bcrypt($request->password)
             ])->save();

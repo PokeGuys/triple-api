@@ -183,7 +183,7 @@ class AttractionController extends Controller
                 return Attraction::find($id);
             });
             if (!$attraction) {
-                throw new NotFoundHttpException(trans('notfound.attracion'));
+                throw new NotFoundHttpException(trans('notfound.attraction'));
             }
             if (!isset($attraction->description) || Carbon::now()->diffInDays($attraction->updated_at) > 14) {
                 $api = new DetailAPI();
