@@ -4,6 +4,13 @@ namespace App\Services\Google;
 
 class DirectionAPI extends GoogleAPI
 {
+    private $altmode;
+
+    public function __construct($altmode) {
+        parent::__construct();
+        $this->altmode = $altmode;
+    }
+
     public function fetch($origin, $destination, &$options = [])
     {
         $options = array_merge($options, [
@@ -19,7 +26,12 @@ class DirectionAPI extends GoogleAPI
             if ($this->checkStatus($direction->status)) {
                 $this->logger->debug('[Google] DirectionAPI: Succeed', $options);
                 $route = $direction->routes[0];
-                if (isset($route->warnings)) {
+                if (!empty($route->warnings)) {
+                    if (isset($this->altmode)) {
+                        $options['mode'] = $this->altmode;
+                        $route->mode = $options['mode'];
+                        return $this->fetch($origin, $destination, $options);
+                    }
                     $options['mode'] = 'walking';
                 }
                 $route->mode = $options['mode'];

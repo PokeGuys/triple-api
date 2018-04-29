@@ -372,7 +372,7 @@ class TripController extends Controller
                         $keyword = !empty($bestName) ? $bestName : $info->name;
                         $openParenthesesIdx = strpos($keyword, '(');
                         $endParenthesesIdx = strpos($keyword, ')');
-                        if ($parenthesesIdx !== false && $endParenthesesIdx !== false) {
+                        if ($openParenthesesIdx !== false && $endParenthesesIdx !== false) {
                             $keyword = trim(substr($keyword, 0, $openParenthesesIdx));
                         }
                         if (!empty($keyword)) {

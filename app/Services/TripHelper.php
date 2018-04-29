@@ -206,7 +206,12 @@ class TripHelper
         // By checking is the previous location variable is empty.
         if (isset($this->prevLocation)) {
             // Geting the travel information (duration, distance, route)
-            $travel = $this->getTravelInfo($this->prevLocation, [$place->latitude, $place->longitude]);
+            $estDistance = $this->estimateDistance($this->prevLocation[0], $this->prevLocation[1], $place->latitude, $place->longitude);
+            $mode = null;
+            if ($estDistance > 2.5) {
+                $mode = 'driving';
+            }
+            $travel = $this->getTravelInfo($this->prevLocation, [$place->latitude, $place->longitude], $mode);
             $this->currentTime->addSeconds($travel['travel_duration']);
         }
         // Clone variable to avoid any changes.
@@ -437,8 +442,8 @@ class TripHelper
      * @param  array $destination [Ending point]
      * @return array              [Travel Information]
      */
-    private function getTravelInfo($origin, $destination) {
-        $api = new DirectionAPI();
+    private function getTravelInfo($origin, $destination, $mode = null) {
+        $api = new DirectionAPI($mode);
         $options = [
             'mode' => 'transit',
             'departure_time' => $this->currentTime->timestamp
@@ -598,5 +603,19 @@ class TripHelper
     {
         $currentDate = $this->currentTime->format('Y-m-d');
         return $this->timetable[$currentDate] == null || sizeof($this->timetable[$currentDate]) === 1;
+    }
+
+    /**
+     * [Calculate the estimated distance between two geolocation]
+     * @return integer [Travel distance in KM]
+     */
+    private function estimateDistance($lat1, $lon1, $lat2, $lon2) {
+        $theta = $lon1 - $lon2;
+        $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
+        $dist = acos($dist);
+        $dist = rad2deg($dist);
+        $miles = $dist * 60 * 1.1515;
+
+        return $miles * 1.609344;
     }
 }
