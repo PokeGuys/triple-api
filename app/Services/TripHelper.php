@@ -248,24 +248,6 @@ class TripHelper
             // Append explore api to request queue.
             $requestQueue[] = $explore->fetch(30000, $this->location);
         }
-        // ABANDONED: All tags
-        // foreach ($tags as $tag) {
-        //     $requestQueue[] = $recommand->fetch($tag, $location, [
-        //         'localDay' => $this->currentTime->dayOfWeek === 0 ? 7 : $this->currentTime->dayOfWeek,
-        //         'localTime' => $this->currentTime->format('H:i')
-        //     ]);
-        // }
-        // $responses = Promise\settle($requestQueue)->wait();
-        // $numItems = count($requestQueue) + 1;
-        // $i = 0;
-        // $places = [];
-        // foreach ($responses as $response) {
-        //     if ($this->explore === null && ++$i === $numItems) {
-        //         $places['explore'] = $explore->parse($response);
-        //     } else {
-        //         $places['recommand'] = array_merge($places['recommand'], $recommand->parse($response));
-        //     }
-        // }
 
         // Current tag & explore api.
         // Append the required field to 3rd-party api, Foursquare, to fetch related attraction and is opening at that moment.

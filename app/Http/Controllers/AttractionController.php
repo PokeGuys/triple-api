@@ -196,7 +196,12 @@ class AttractionController extends Controller
                     $description = $info->description;
                 } else {
                     $searchAPI = new SearchAPI();
-                    $keyword = trim(preg_replace("/\p{Han}+/u", '', !empty($bestName) ? $bestName : $info->name));
+                    $keyword = !empty($bestName) ? $bestName : $info->name;
+                    $openParenthesesIdx = strpos($keyword, '(');
+                    $endParenthesesIdx = strpos($keyword, ')');
+                    if ($parenthesesIdx !== false && $endParenthesesIdx !== false) {
+                        $keyword = trim(substr($keyword, 0, $openParenthesesIdx));
+                    }
                     if (!empty($keyword)) {
                         $result = $searchAPI->fetch($keyword);
                         if (!isset($result->error)) {
