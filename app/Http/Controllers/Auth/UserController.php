@@ -84,6 +84,7 @@ class UserController extends Controller
                 $tag = Tag::where('tag', $preferences[$i]['key'])->first();
                 $user->tags()->syncWithoutDetaching(['tag_id' => $tag->id]);
             }
+            Cache::put("preference_user_{$user->id}", $user->tags, 60);
         } catch (\Exception $e) {
             Log::error($e);
             throw new ServiceUnavailableHttpException('', trans('custom.unavailable'));
