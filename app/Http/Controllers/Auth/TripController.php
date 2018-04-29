@@ -368,7 +368,6 @@ class TripController extends Controller
                         $description = $info->description;
                     } else {
                         $searchAPI = new SearchAPI();
-                        $summaryAPI = new SummaryAPI();
                         $keyword = !empty($bestName) ? $bestName : $info->name;
                         $openParenthesesIdx = strpos($keyword, '(');
                         $endParenthesesIdx = strpos($keyword, ')');
@@ -378,9 +377,12 @@ class TripController extends Controller
                         if (!empty($keyword)) {
                             $result = $searchAPI->fetch($keyword);
                             if (!isset($result->error)) {
-                                $summary = $summaryAPI->fetch($result->title);
-                                if (!isset($summary->error)) {
-                                    $description = $summary;
+                                if (StringSimilarity::compare($result->title, $keyword) > 0.7) {
+                                    $summaryAPI = new SummaryAPI();
+                                    $summary = $summaryAPI->fetch($result->title);
+                                    if (!isset($summary->error)) {
+                                        $description = $summary;
+                                    }
                                 }
                             }
                         }

@@ -6,6 +6,7 @@ use Cache;
 use App\Models\City;
 use App\Models\Attraction;
 use App\Http\Controllers\Controller;
+use App\Services\StringSimilarity;
 use App\Services\Wikipedia\SearchAPI;
 use App\Services\Wikipedia\SummaryAPI;
 use App\Services\Foursquare\DetailAPI;
@@ -205,10 +206,12 @@ class AttractionController extends Controller
                     if (!empty($keyword)) {
                         $result = $searchAPI->fetch($keyword);
                         if (!isset($result->error)) {
-                            $summaryAPI = new SummaryAPI();
-                            $summary = $summaryAPI->fetch($result->title);
-                            if (!isset($summary->error)) {
-                                $description = $summary;
+                            if (StringSimilarity::compare($result->title, $keyword) > 0.7) {
+                                $summaryAPI = new SummaryAPI();
+                                $summary = $summaryAPI->fetch($result->title);
+                                if (!isset($summary->error)) {
+                                    $description = $summary;
+                                }
                             }
                         }
                     }
