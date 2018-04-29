@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use Auth;
+use Cache;
 use Log;
 use Validator;
 use Carbon\Carbon;
